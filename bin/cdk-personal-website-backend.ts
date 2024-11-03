@@ -1,21 +1,44 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { CdkPersonalWebsiteBackendStack } from '../lib/cdk-personal-website-backend-stack';
+import "source-map-support/register";
+import * as cdk from "aws-cdk-lib";
+import { CoreResourcesStack } from "../lib/1. CoreResourcesStack/CoreResourcesStack";
+import { PrimaryResourcesStack } from "../lib/2. PrimaryResourcesStack/PrimaryResourcesStack";
 
 const app = new cdk.App();
-new CdkPersonalWebsiteBackendStack(app, 'CdkPersonalWebsiteBackendStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const APP_NAME = process.env.APP_NAME || "";
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+/* Optional flag for deploying OIDC setup stack.
+This must be used ONLY for the first deployment of the backend. */
+const isCoreResourcesStackToBeDeployed =
+  process.env.DEPLOY_CORE_RESOURCES === "true";
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+if (isCoreResourcesStackToBeDeployed) {
+  new CoreResourcesStack(app, `${APP_NAME}-core-resources-stack`, {
+    stackName: `${APP_NAME}-core-resources-stack`,
+    githubRepoName: process.env.GITHUB_REPO_NAME || "",
+    appName: APP_NAME,
+    env: {
+      account: process.env.AWS_ACCOUNT_ID || "",
+      region: process.env.AWS_REGION || "",
+    },
+    synthesizer: new cdk.DefaultStackSynthesizer({
+      qualifier: process.env.CDK_QUALIFIER || "",
+    }),
+  });
+}
+
+/* Deploy the primary backend stack
+ * This is the primary stack that will contain all the resources for the backend.
+ */
+new PrimaryResourcesStack(app, `${APP_NAME}-primary-resources-stack`, {
+  stackName: `${APP_NAME}-primary-resources-stack`,
+  appName: `${APP_NAME}-backend`,
+  env: {
+    account: process.env.AWS_ACCOUNT_ID || "",
+    region: process.env.AWS_REGION || "",
+  },
+  synthesizer: new cdk.DefaultStackSynthesizer({
+    qualifier: process.env.CDK_QUALIFIER || "",
+  }),
 });
