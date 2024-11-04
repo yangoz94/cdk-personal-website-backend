@@ -16,7 +16,6 @@ export interface MainAPINestedStackProps extends cdk.NestedStackProps {
 
 export class MainAPINestedStack extends cdk.NestedStack {
   public readonly apiGateway: APIGatewayConstruct;
-  public readonly allLambdaFunctions: ApiGatewayLambdaConstruct[];
   public readonly helloFunction: ApiGatewayLambdaConstruct;
 
   constructor(scope: Construct, id: string, props: MainAPINestedStackProps) {
@@ -50,8 +49,5 @@ export class MainAPINestedStack extends cdk.NestedStack {
         entryFile: "hello.ts",
       }
     );
-
-    /* Append it to the allLambdaFunctions array to have access to all functions in one object for convenience */
-    this.allLambdaFunctions.push(this.helloFunction);
   }
 }

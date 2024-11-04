@@ -6,6 +6,7 @@ import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as path from "path";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
+import { Duration } from "aws-cdk-lib";
 
 export interface ApiGatewayLambdaProps {
   appName: string;
@@ -15,8 +16,9 @@ export interface ApiGatewayLambdaProps {
   restApi: apigw.RestApi;
   resourcePath: string;
   httpMethod: string;
-  apiVersion?: string;
+  apiVersion: string;
   entryFile: string; // New property to specify the Lambda file name
+  timeout?: Duration;
   permissions?: string[];
   vpcEndpoints?: (ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[];
   nodeModules?: string[];
@@ -37,7 +39,8 @@ export class ApiGatewayLambdaConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       handler: "handler",
-      entry: path.join(__dirname, `../../../src/lambdas/${props.entryFile}`), // Use entryFile here
+      entry: path.join(__dirname, `../../src/lambdas/${props.entryFile}`), // Use entryFile here
+      timeout: props.timeout || Duration.seconds(30),
       bundling: {
         sourceMap: false,
         nodeModules: props.nodeModules || [],
