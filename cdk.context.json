@@ -1,0 +1,76 @@
+{
+  "availability-zones:account=928085612796:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "vpc-provider:account=928085612796:filter.tag:Name=oy-blog-vpc:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0050a963a31e66d43",
+    "vpcCidrBlock": "10.1.0.0/16",
+    "ownerAccountId": "928085612796",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "oy-blog-public-",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0193c14279fc84738",
+            "cidr": "10.1.0.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-012198f04ebc39478"
+          },
+          {
+            "subnetId": "subnet-04409b2168c3ec3c8",
+            "cidr": "10.1.1.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0f38a3dad7071dbab"
+          }
+        ]
+      },
+      {
+        "name": "oy-blog-private-egress-",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-06e4c2d853d36d82e",
+            "cidr": "10.1.4.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-08ed2eac08064707e"
+          },
+          {
+            "subnetId": "subnet-0b1fab9791c9511f6",
+            "cidr": "10.1.5.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0a7e62dcfc8e0ee2a"
+          }
+        ]
+      },
+      {
+        "name": "oy-blog-private-isolated-",
+        "type": "Isolated",
+        "subnets": [
+          {
+            "subnetId": "subnet-02c1780363cb3e076",
+            "cidr": "10.1.2.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0be0e800cd5bec757"
+          },
+          {
+            "subnetId": "subnet-06a82e158722fce20",
+            "cidr": "10.1.3.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-010799ff54b83089d"
+          }
+        ]
+      }
+    ]
+  },
+  "acknowledged-issue-numbers": [
+    30444,
+    30717
+  ]
+}

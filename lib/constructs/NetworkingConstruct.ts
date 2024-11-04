@@ -29,10 +29,6 @@ export class NetworkingConstruct extends Construct {
    * The created VPC resource.
    */
   public readonly vpc: ec2.Vpc;
-  /**
-   * The created Internet Gateway resource attached to the VPC's public subnets.
-   */
-  public readonly igw: ec2.CfnInternetGateway;
 
   /**
    * Constructs a new instance of the NetworkingConstruct.
@@ -46,51 +42,34 @@ export class NetworkingConstruct extends Construct {
 
     /* Create a VPC with public and private isolated subnets. */
     this.vpc = new ec2.Vpc(this, `${props.appName}-vpc`, {
+      vpcName: `${props.appName}-vpc`,
       ipAddresses: ec2.IpAddresses.cidr("10.1.0.0/16"),
       maxAzs: 2,
+      createInternetGateway: true,
       subnetConfiguration: [
         {
           cidrMask: 24,
-          name: `${props.appName}-public-subnet`,
+          name: `${props.appName}-public-`, // Simplified name for public subnet
           subnetType: ec2.SubnetType.PUBLIC,
         },
         {
           cidrMask: 24,
-          name: `${props.appName}-private-subnet`,
+          name: `${props.appName}-private-isolated-`, // Simplified name for isolated private subnet
           subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
         },
-      ],
-      natGateways: 0 /* No NAT Gateways */,
-    });
-
-    /* Create an Internet Gateway to allow the VPC to connect to the internet via the public subnets. */
-    this.igw = new ec2.CfnInternetGateway(
-      this,
-      `${props.appName}-internet-gateway`
-    );
-
-    /* Attach the Internet Gateway to the VPC. */
-    const vpcGatewayAttachment = new ec2.CfnVPCGatewayAttachment(
-      this,
-      `${props.appName}-vpc-gateway-attachment`,
-      {
-        vpcId: this.vpc.vpcId,
-        internetGatewayId: this.igw.ref,
-      }
-    );
-
-    /* Create a route in the route table of each public subnet to the Internet Gateway. */
-    this.vpc.publicSubnets.forEach((subnet) => {
-      const routeTable = new ec2.CfnRoute(
-        this,
-        `${props.appName}-${subnet.node.id.toLowerCase()}-public-route`,
         {
-          routeTableId: subnet.routeTable.routeTableId,
-          destinationCidrBlock: "0.0.0.0/0",
-          gatewayId: this.igw.ref,
-        }
-      );
-      routeTable.addDependency(vpcGatewayAttachment);
+          cidrMask: 24,
+          name: `${props.appName}-private-egress-`, // Simplified name for private subnet with egress
+          subnetType:
+            ec2.SubnetType
+              .PRIVATE_WITH_EGRESS /* no NAT Gateways - can use only vpc endpoints for internal communication */,
+        },
+      ],
+      natGateways: 0,
+      restrictDefaultSecurityGroup: true,
     });
+
+    /* Tag the VPC */
+    cdk.Tags.of(this.vpc).add("Name", `${props.appName}-vpc`);
   }
 }
