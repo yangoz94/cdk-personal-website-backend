@@ -50,6 +50,7 @@ const primaryResourcesStack = new PrimaryResourcesStack(
     apiDomain: process.env.API_DOMAIN || "",
     apiVersion: process.env.API_VERSION || "",
     hostedZoneId: process.env.HOSTED_ZONE_ID || "",
+    environment: process.env.ENVIRONMENT || "",
   }
 );
 

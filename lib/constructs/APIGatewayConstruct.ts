@@ -11,6 +11,7 @@ export interface APIGatewayConstructProps extends apigw.RestApiProps {
   apiSubDomain: string;
   apiDomain: string;
   hostedZoneId: string;
+  environment: string;
 }
 
 export class APIGatewayConstruct extends Construct {

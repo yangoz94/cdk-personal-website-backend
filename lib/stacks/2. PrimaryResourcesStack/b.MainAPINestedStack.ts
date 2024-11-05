@@ -12,6 +12,7 @@ export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   hostedZoneId: string;
   vpc: ec2.IVpc;
   dynamoDBVpcEndpoint: ec2.GatewayVpcEndpoint;
+  environment: string;
 }
 
 export class MainAPINestedStack extends cdk.NestedStack {
@@ -27,6 +28,7 @@ export class MainAPINestedStack extends cdk.NestedStack {
       apiSubDomain: props.apiSubDomain,
       apiDomain: props.apiDomain,
       hostedZoneId: props.hostedZoneId,
+      environment: props.environment,
     });
 
     /* Instantiate Hello Lambda function */

@@ -9,6 +9,7 @@ export interface PrimaryResourcesStackProps extends cdk.StackProps {
   apiDomain: string;
   apiVersion: string;
   hostedZoneId: string;
+  environment: string;
 }
 
 export class PrimaryResourcesStack extends cdk.Stack {
@@ -36,6 +37,7 @@ export class PrimaryResourcesStack extends cdk.Stack {
         hostedZoneId: props.hostedZoneId,
         vpc: infrastructureStack.vpc,
         dynamoDBVpcEndpoint: infrastructureStack.dynamoDBVpcEndpoint,
+        environment: props.environment,
       }
     );
 

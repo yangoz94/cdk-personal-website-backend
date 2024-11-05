@@ -19,7 +19,7 @@
 
 9. Log in to AWS console and go to Route 53 - Hosted Zones;
 
-   - if you purchased your domain from a domain registrar other than AWS itself (e.g. Godaddy, Squarespace etc), click create Hosted Zone and enter your domain name and hit create hosted zone. In your hosted zone, you will see four NS record values. Copy them individually and add them to your domain's record in your domain registrar's console. Make sure to use the base domain while adding and do not use any subdomain here.
+   - if you purchased your domain from a domain registrar other than AWS itself (e.g. Godaddy, Squarespace etc), click create Hosted Zone and enter your domain name and hit create hosted zone. In your hosted zone, you will see four NS record values. Copy them individually and add them to your domain's record in your domain registrar's console. Make sure to use the base domain while adding and do not use any subdomain here. If you plan to have multiple environments (dev,staging,prod) then you can pass the `environment` prop to the certificate and A record.
 
    - if you purchased your domain directly from AWS, your hosted zone will be automatically created by AWS. Look for it in the hosted zones tab.
 
