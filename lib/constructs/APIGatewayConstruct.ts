@@ -6,19 +6,58 @@ import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
 
+/**
+ * Properties for configuring the APIGatewayConstruct.
+ */
 export interface APIGatewayConstructProps extends apigw.RestApiProps {
+  /**
+   * The name for the API Gateway.
+   */
   apiGatewayName: string;
+
+  /**
+   * The subdomain for the API Gateway.
+   */
   apiSubDomain: string;
-  apiDomain: string;
+
+  /**
+   * The domain name for the API Gateway.
+   */
+  domain: string;
+
+  /**
+   * The hosted zone ID for the domain.
+   */
   hostedZoneId: string;
-  environment: string;
 }
 
+/**
+ * Creates an Edge-optimized REST API Gateway with custom domain, certificate,
+ * access logging, and Route 53 alias record configuration.
+ *
+ * @example
+ * const apiGateway = new APIGatewayConstruct(this, 'MyAPIGateway', {
+ *   apiGatewayName: 'my-api-gw',
+ *   apiSubDomain: 'api',
+ *   domain: 'example.com',
+ *   hostedZoneId: 'Z1234567890',
+ * });
+ */
 export class APIGatewayConstruct extends Construct {
+  /**
+   * The created REST API Gateway resource.
+   */
   public readonly restApi: apigw.RestApi;
 
-  constructor(scope: Construct, props: APIGatewayConstructProps) {
-    super(scope, props.apiGatewayName);
+  /**
+   * Constructs a new instance of the APIGatewayConstruct.
+   *
+   * @param {Construct} scope - The parent construct, typically a CDK stack.
+   * @param {string} id - The unique identifier for this construct.
+   * @param {APIGatewayConstructProps} props - Properties for configuring the API Gateway.
+   */
+  constructor(scope: Construct, id: string, props: APIGatewayConstructProps) {
+    super(scope, id);
 
     /* Create an access log group for the API Gateway */
     const accessLogGroup = new logs.LogGroup(
@@ -69,8 +108,8 @@ export class APIGatewayConstruct extends Construct {
       this,
       `${props.apiGatewayName}-certificate`,
       {
-        domainName: `*.${props.apiSubDomain}.${props.apiDomain}`,
-        subjectAlternativeNames: [`${props.apiSubDomain}.${props.apiDomain}`],
+        domainName: `*.${props.apiSubDomain}.${props.domain}`,
+        subjectAlternativeNames: [`${props.apiSubDomain}.${props.domain}`],
         certificateName: `${props.apiGatewayName}-certificate`,
         validation:
           certificatemanager.CertificateValidation.fromDns(hostedZone),
@@ -82,7 +121,7 @@ export class APIGatewayConstruct extends Construct {
       this,
       `${props.apiGatewayName}-domain`,
       {
-        domainName: `${props.apiSubDomain}.${props.apiDomain}`,
+        domainName: `${props.apiSubDomain}.${props.domain}`,
         certificate: certificate,
         endpointType: apigw.EndpointType.EDGE,
         securityPolicy: apigw.SecurityPolicy.TLS_1_2,
@@ -92,16 +131,15 @@ export class APIGatewayConstruct extends Construct {
 
     /* Add an Alias A Record in Route 53 for the custom domain */
     new route53.ARecord(this, `${props.apiGatewayName}-alias-record`, {
-      /* ID based Hosted zone lookup doesnt support zoneName extraction */
       zone: route53.HostedZone.fromHostedZoneAttributes(
         this,
         `${props.apiGatewayName}-hosted-zone-attributes`,
         {
           hostedZoneId: props.hostedZoneId,
-          zoneName: props.apiDomain,
+          zoneName: props.domain,
         }
       ),
-      recordName: `${props.apiSubDomain}.${props.apiDomain}`,
+      recordName: `${props.apiSubDomain}.${props.domain}`,
       target: route53.RecordTarget.fromAlias(
         new targets.ApiGatewayDomain(domainName)
       ),

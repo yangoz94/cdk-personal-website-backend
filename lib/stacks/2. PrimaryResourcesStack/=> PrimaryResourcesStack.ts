@@ -6,10 +6,10 @@ import { MainAPINestedStack } from "./b.MainAPINestedStack";
 export interface PrimaryResourcesStackProps extends cdk.StackProps {
   appName: string;
   apiSubDomain: string;
-  apiDomain: string;
+  domain: string;
   apiVersion: string;
   hostedZoneId: string;
-  environment: string;
+  cdnSubDomain: string;
 }
 
 export class PrimaryResourcesStack extends cdk.Stack {
@@ -32,12 +32,12 @@ export class PrimaryResourcesStack extends cdk.Stack {
       {
         appName: props.appName,
         apiSubDomain: props.apiSubDomain,
-        apiDomain: props.apiDomain,
+        domain: props.domain,
         apiVersion: props.apiVersion,
+        cdnSubDomain: props.cdnSubDomain,
         hostedZoneId: props.hostedZoneId,
         vpc: infrastructureStack.vpc,
         dynamoDBVpcEndpoint: infrastructureStack.dynamoDBVpcEndpoint,
-        environment: props.environment,
       }
     );
 

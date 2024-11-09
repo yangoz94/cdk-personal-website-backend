@@ -14,8 +14,8 @@ const coreResourcesStack = new CoreResourcesStack(
   app,
   `${APP_NAME}-core-resources-stack`,
   {
-    githubRepoName: process.env.GITHUB_REPO_NAME || "",
     appName: APP_NAME,
+    githubRepoName: process.env.GITHUB_REPO_NAME || "",
     env: {
       account: process.env.AWS_ACCOUNT_ID || "",
       region: process.env.AWS_REGION || "",
@@ -46,11 +46,11 @@ const primaryResourcesStack = new PrimaryResourcesStack(
       qualifier: process.env.CDK_QUALIFIER || "",
     }),
     appName: APP_NAME,
+    domain: process.env.DOMAIN || "",
     apiSubDomain: process.env.API_SUB_DOMAIN || "",
-    apiDomain: process.env.API_DOMAIN || "",
     apiVersion: process.env.API_VERSION || "",
+    cdnSubDomain: process.env.CDN_SUB_DOMAIN || "",
     hostedZoneId: process.env.HOSTED_ZONE_ID || "",
-    environment: process.env.ENVIRONMENT || "",
   }
 );
 
