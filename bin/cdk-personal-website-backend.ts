@@ -49,8 +49,23 @@ const primaryResourcesStack = new PrimaryResourcesStack(
     domain: process.env.DOMAIN || "",
     apiSubDomain: process.env.API_SUB_DOMAIN || "",
     apiVersion: process.env.API_VERSION || "",
+    authSubdomain: process.env.AUTH_SUB_DOMAIN || "",
     cdnSubDomain: process.env.CDN_SUB_DOMAIN || "",
     hostedZoneId: process.env.HOSTED_ZONE_ID || "",
+    cognitoConfig: {
+      selfSignUpEnabled: false,
+      userGroups: [{ groupName: "Admins" }],
+      callbackUrls: [
+        `https://${process.env.DOMAIN}/auth/callback`,
+      ] /* TO-DO: Add/Update the callback URL(s) depending on frontend */,
+      logoutUrls: [
+        `https://${process.env.DOMAIN}/auth/logout`,
+      ] /* TO-DO: Add/Update the logout URL(s) depending on frontend */,
+      flows: {
+        authCodeGrant: true,
+        implicitCodeGrant: true,
+      },
+    },
   }
 );
 

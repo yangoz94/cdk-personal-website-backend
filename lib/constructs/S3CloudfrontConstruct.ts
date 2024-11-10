@@ -8,6 +8,7 @@ import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 
 /**
  * Properties for configuring the S3CloudFrontConstruct.
@@ -35,8 +36,9 @@ interface S3CloudFrontConstructProps extends cdk.StackProps {
 }
 
 /**
- * Creates an S3 bucket and a CloudFront distribution,
- * and integrates CloudFront with the S3 bucket to make all bucket content publicly accessible (read-only).
+ * Creates an S3 bucket and a CloudFront distribution.
+ * The S3 bucket includes a `public` folder for publicly accessible content and a `logs` folder for access logs.
+ * The CloudFront distribution only grants access to the `public` folder, keeping `logs` private.
  * Adds a Route 53 A record for the CloudFront distribution.
  *
  * @example
@@ -80,22 +82,36 @@ export class S3CloudFrontConstruct extends Construct {
       props.hostedZoneId
     );
 
-    /* Create an S3 bucket */
+    /* Create an S3 bucket with a `public` folder for CDN access and a `logs` folder for CloudFront logs */
     this.bucket = new s3.Bucket(this, `${props.appName}-bucket`, {
       bucketName: `${props.appName}-bucket`,
-      publicReadAccess: false, // we will use bucket policy for public access via CDN
+      publicReadAccess: false, // Restrict public access to CloudFront only
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: false,
+      autoDeleteObjects: true,
       versioned: true,
       enforceSSL: true,
-      serverAccessLogsPrefix: "logs/",
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER, // Required for CloudFront logs
     });
 
-    /* Grant CloudFront access to the S3 bucket */
+    /* Grant CloudFront access to objects in the `public` folder only */
     this.bucket.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: ["s3:GetObject"],
-        resources: [`${this.bucket.bucketArn}/*`],
+        resources: [`${this.bucket.bucketArn}/public/*`],
+        principals: [new iam.ServicePrincipal("cloudfront.amazonaws.com")],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceArn": `arn:aws:cloudfront::${cdk.Aws.ACCOUNT_ID}:distribution/${props.appName}-distribution`,
+          },
+        },
+      })
+    );
+
+    /* Grant CloudFront access to write logs to the `logs` folder */
+    this.bucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:PutObject"],
+        resources: [`${this.bucket.bucketArn}/logs/*`],
         principals: [new iam.ServicePrincipal("cloudfront.amazonaws.com")],
         conditions: {
           StringEquals: {
@@ -111,14 +127,13 @@ export class S3CloudFrontConstruct extends Construct {
       `${props.appName}-certificate`,
       {
         certificateName: `${props.appName}-cdn-certificate`,
-        domainName: `*.${props.cdnSubDomain}.${props.domainName}`,
-        subjectAlternativeNames: [`${props.cdnSubDomain}.${props.domainName}`],
+        domainName: `${props.cdnSubDomain}.${props.domainName}`,
         validation:
           certificatemanager.CertificateValidation.fromDns(hostedZone),
       }
     );
 
-    /* Create a CloudFront distribution */
+    /* Create a CloudFront distribution restricted to the `public` folder */
     this.distribution = new cloudfront.Distribution(
       this,
       `${props.appName}-distribution`,
@@ -126,15 +141,29 @@ export class S3CloudFrontConstruct extends Construct {
         domainNames: [`${props.cdnSubDomain}.${props.domainName}`],
         certificate: this.certificate,
         defaultBehavior: {
-          origin: new origins.S3Origin(this.bucket),
+          origin: new origins.S3Origin(this.bucket, {
+            originPath: "/",
+          }),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
           responseHeadersPolicy:
             cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
         },
+        enableLogging: true, 
+        logBucket: this.bucket, 
+        logFilePrefix: "logs/cloudfront/", 
       }
     );
+
+    /* Deploy a placeholder to ensure the `public` folder exists in S3 */
+    new s3deploy.BucketDeployment(this, `${props.appName}-public-folder-init`, {
+      destinationBucket: this.bucket,
+      destinationKeyPrefix: "public/",
+      sources: [
+        s3deploy.Source.data("placeholder.txt", "This is a placeholder"),
+      ],
+    });
 
     /* Create an Alias A Record in Route 53 for the CloudFront distribution */
     new route53.ARecord(this, `${props.appName}-alias-record`, {

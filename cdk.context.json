@@ -7,70 +7,71 @@
     "us-east-1e",
     "us-east-1f"
   ],
-  "vpc-provider:account=928085612796:filter.tag:Name=oy-blog-vpc:region=us-east-1:returnAsymmetricSubnets=true": {
-    "vpcId": "vpc-0050a963a31e66d43",
+  "vpc-provider:account=928085612796:filter.tag:Name=oyangoz-vpc:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-07d33f5d0ed857751",
     "vpcCidrBlock": "10.1.0.0/16",
     "ownerAccountId": "928085612796",
     "availabilityZones": [],
     "subnetGroups": [
       {
-        "name": "oy-blog-public-",
-        "type": "Public",
-        "subnets": [
-          {
-            "subnetId": "subnet-0193c14279fc84738",
-            "cidr": "10.1.0.0/24",
-            "availabilityZone": "us-east-1a",
-            "routeTableId": "rtb-012198f04ebc39478"
-          },
-          {
-            "subnetId": "subnet-04409b2168c3ec3c8",
-            "cidr": "10.1.1.0/24",
-            "availabilityZone": "us-east-1b",
-            "routeTableId": "rtb-0f38a3dad7071dbab"
-          }
-        ]
-      },
-      {
-        "name": "oy-blog-private-egress-",
+        "name": "oyangoz-private-egress-",
         "type": "Private",
         "subnets": [
           {
-            "subnetId": "subnet-06e4c2d853d36d82e",
+            "subnetId": "subnet-09c3e2c978b854bfc",
             "cidr": "10.1.4.0/24",
             "availabilityZone": "us-east-1a",
-            "routeTableId": "rtb-08ed2eac08064707e"
+            "routeTableId": "rtb-04b01f71b4054b0ba"
           },
           {
-            "subnetId": "subnet-0b1fab9791c9511f6",
+            "subnetId": "subnet-018f72510a5070087",
             "cidr": "10.1.5.0/24",
             "availabilityZone": "us-east-1b",
-            "routeTableId": "rtb-0a7e62dcfc8e0ee2a"
+            "routeTableId": "rtb-0ba6fb00bcf373979"
           }
         ]
       },
       {
-        "name": "oy-blog-private-isolated-",
+        "name": "oyangoz-private-isolated-",
         "type": "Isolated",
         "subnets": [
           {
-            "subnetId": "subnet-02c1780363cb3e076",
+            "subnetId": "subnet-0fc96ca00326af477",
             "cidr": "10.1.2.0/24",
             "availabilityZone": "us-east-1a",
-            "routeTableId": "rtb-0be0e800cd5bec757"
+            "routeTableId": "rtb-071af805e9a46e6d8"
           },
           {
-            "subnetId": "subnet-06a82e158722fce20",
+            "subnetId": "subnet-07b16332eb95d01d8",
             "cidr": "10.1.3.0/24",
             "availabilityZone": "us-east-1b",
-            "routeTableId": "rtb-010799ff54b83089d"
+            "routeTableId": "rtb-0ca8d34d051fa3a79"
+          }
+        ]
+      },
+      {
+        "name": "oyangoz-public-",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-06844b650932af3c9",
+            "cidr": "10.1.0.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-02e6ac9d7dfc7758f"
+          },
+          {
+            "subnetId": "subnet-09001a6d001b5bacb",
+            "cidr": "10.1.1.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-025596e029aae8177"
           }
         ]
       }
     ]
   },
   "acknowledged-issue-numbers": [
-    30444,
-    30717
+    29949,
+    30717,
+    30444
   ]
 }

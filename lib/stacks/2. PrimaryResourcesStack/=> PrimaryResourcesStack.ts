@@ -2,14 +2,17 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { InfrastructureNestedStack } from "./a.InfrastructureNestedStack";
 import { MainAPINestedStack } from "./b.MainAPINestedStack";
+import { CognitoConfig } from "../../constructs/APIGatewayWithCognitoUserPoolConstruct";
 
 export interface PrimaryResourcesStackProps extends cdk.StackProps {
   appName: string;
   apiSubDomain: string;
+  authSubdomain: string;
   domain: string;
   apiVersion: string;
   hostedZoneId: string;
   cdnSubDomain: string;
+  cognitoConfig: CognitoConfig;
 }
 
 export class PrimaryResourcesStack extends cdk.Stack {
@@ -33,11 +36,13 @@ export class PrimaryResourcesStack extends cdk.Stack {
         appName: props.appName,
         apiSubDomain: props.apiSubDomain,
         domain: props.domain,
+        authSubdomain: props.authSubdomain,
         apiVersion: props.apiVersion,
         cdnSubDomain: props.cdnSubDomain,
         hostedZoneId: props.hostedZoneId,
         vpc: infrastructureStack.vpc,
         dynamoDBVpcEndpoint: infrastructureStack.dynamoDBVpcEndpoint,
+        cognitoConfig: props.cognitoConfig,
       }
     );
 

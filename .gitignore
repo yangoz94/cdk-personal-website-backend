@@ -3,6 +3,7 @@
 *.d.ts
 node_modules
 *DS_Store
+*cdk.context.json
 
 # CDK asset staging directory
 .cdk.staging
@@ -10,3 +11,4 @@ node_modules
 *cdk.core.out
 *cdk.primary.out
 *.env
+cdk.context.json
