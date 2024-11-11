@@ -28,7 +28,7 @@ env:
 jobs:
   core_resources:
     name: Core Resources
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout the repository
@@ -39,7 +39,7 @@ jobs:
 
   primary_resources:
     name: Primary Resources
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     needs: core_resources
     if: github.ref == 'refs/heads/main'
     steps:
