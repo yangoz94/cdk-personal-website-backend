@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { NetworkingConstruct } from "../../constructs/NetworkingConstruct";
-import { OIDCAndExecutionRolesConstruct } from "../../constructs/OIDCAndExecutionRolesConstruct";
+import { OIDCRoleConstruct } from "../../constructs/OIDCRoleConstruct";
 
 export interface CoreResourcesStackProps extends cdk.StackProps {
   appName: string;
@@ -13,7 +13,7 @@ export class CoreResourcesStack extends cdk.Stack {
     super(scope, id, props);
 
     /* Create core resources (OIDC provider, roles, etc.) */
-    const oidcAndExecutionRoles = new OIDCAndExecutionRolesConstruct(
+    const oidcAndExecutionRoles = new OIDCRoleConstruct(
       this,
       `${props.appName}-oidc-and-execution-roles-construct`,
       {
