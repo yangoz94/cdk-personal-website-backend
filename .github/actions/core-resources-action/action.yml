@@ -12,12 +12,6 @@ runs:
         role-session-name: ${{ env.APP_NAME }}-github-oidc-session
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: CDK deployment
       run: |
         export CI=true
