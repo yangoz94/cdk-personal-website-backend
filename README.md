@@ -1,5 +1,7 @@
 # Instructions
 
+WARNING: These instructions were tested on MacOS devices with ARM architecture. If your system is using x86, you might need to make some changes to the architecture and platform fields in the lambda construct to avoid errors while bundling during deployment.
+
 1. Clone the repository to your local.
 2. Run `npm i` to install dependencies.
 3. Install `aws-cli` following the guide on `https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html`. Confirm installation by running `aws --version`.

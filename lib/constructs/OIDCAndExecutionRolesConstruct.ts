@@ -30,8 +30,8 @@ const EXECUTION_ROLE_ACTIONS = [
  * execution role with specified permissions, allowing GitHub Actions to assume the execution role to deploy AWS resources.
  *
  * @example
- * new ExecutionRolesConstruct(this, 'ExecutionRoles', {
- *   githubRepoNameToBeAllowlisted: 'my-org/my-repo',
+ * new OIDCAndExecutionRolesConstruct(this, 'OIDCAndExecutionRoles', {
+ *   githubRepoName: 'my-org/my-repo',
  *   appName: 'my-app',
  *   env: { account: '123456789012', region: 'us-east-1' },
  * });
@@ -51,17 +51,17 @@ export class OIDCAndExecutionRolesConstruct extends Construct {
   ) {
     super(scope, id);
 
-    /* Grab the region from the stack environment */
-    const region = cdk.Stack.of(this).account;
-
-    /* Create the OIDC provider for GitHub Actions */
+    /* Set up the GitHub OIDC provider */
     const oidcProvider = new iam.OpenIdConnectProvider(this, `oidc-provider`, {
       url: "https://token.actions.githubusercontent.com",
       clientIds: ["sts.amazonaws.com"],
       thumbprints: ["6938fd4d98bab03faadb97b34396831e3780aea1"],
     });
 
-    /* GitHub Actions OIDC Role with permission to assume the execution role */
+    /**
+     * GitHub Actions OIDC Role: Allows GitHub Actions in the specified repository
+     * to assume the CloudFormation execution role.
+     */
     const githubOidcRole = new iam.Role(
       this,
       `${props.appName}-github-oidc-role`,
@@ -79,39 +79,112 @@ export class OIDCAndExecutionRolesConstruct extends Construct {
       }
     );
 
-    const oidcPolicyStatement = new iam.PolicyStatement({
-      actions: ["sts:AssumeRole"],
-      resources: [
-        `arn:aws:iam::${region}:role/${props.appName}-cfn-execution-role`,
-      ],
-      sid: `CFNExecutionRoleAssumeRole`,
-    });
+    /**
+     * Policy to allow the OIDC role to assume the execution role.
+     */
+    githubOidcRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: [
+          `arn:aws:iam::${cdk.Stack.of(this).account}:role/${
+            props.appName
+          }-cfn-execution-role`,
+        ],
+        sid: "AllowAssumeCfnExecutionRole",
+      })
+    );
 
-    /* Create a policy for OIDC */
-    const oidcPolicy = new iam.Policy(this, `${props.appName}-oidc-policy`, {
+    /* Additional policies for OIDC Role */
+    new iam.Policy(this, `${props.appName}-oidc-policy`, {
       policyName: `${props.appName}-oidc-policy`,
-      statements: [oidcPolicyStatement],
-    });
+      statements: [
+        new iam.PolicyStatement({
+          sid: "AllowCDKDeployments",
+          actions: ["sts:AssumeRole"],
+          resources: [
+            `arn:aws:iam::${cdk.Stack.of(this).account}:role/cdk-${
+              props.appName
+            }-*`,
+          ],
+        }),
+        new iam.PolicyStatement({
+          sid: "CloudFormationActions",
+          actions: ["cloudformation:*"],
+          resources: ["*"],
+        }),
 
-    /* Attach OIDC policy to the GitHub OIDC role */
-    oidcPolicy.attachToRole(githubOidcRole);
+        new iam.PolicyStatement({
+          sid: "S3BucketActions",
+          actions: ["s3:*"],
+          resources: [`arn:aws:s3:::${props.appName}-*`],
+        }),
 
-    /* CloudFormation execution role for managing AWS resources */
+        new iam.PolicyStatement({
+          sid: "SSMGet",
+          actions: ["ssm:GetParameter"],
+          resources: [
+            `arn:aws:ssm:${cdk.Stack.of(this).region}:${
+              cdk.Stack.of(this).account
+            }:parameter/cdk-bootstrap/${props.appName}/version`,
+          ],
+        }),
+        
+        new iam.PolicyStatement({
+          sid: "ReadEventSchemaRegistry",
+          actions: [
+            "schemas:DescribeRegistry",
+            "schemas:ListSchemas",
+            "schemas:SearchSchemas",
+            "schemas:DescribeSchema",
+            "schemas:ListSchemaVersions",
+            "schemas:DescribeCodeBinding",
+            "schemas:GetCodeBindingSource",
+          ],
+          resources: [
+            `arn:aws:schemas:${cdk.Stack.of(this).region}:${
+              cdk.Stack.of(this).account
+            }:registry/*`,
+            `arn:aws:schemas:${cdk.Stack.of(this).region}:${
+              cdk.Stack.of(this).account
+            }:schema/*`,
+          ],
+        }),
+      ],
+    }).attachToRole(githubOidcRole);
+
+    /**
+     * CloudFormation Execution Role: This role allows CloudFormation
+     * to manage AWS resources as specified in the `EXECUTION_ROLE_ACTIONS`.
+     */
     const executionRole = new iam.Role(
       this,
       `${props.appName}-execution-role`,
       {
         assumedBy: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
         roleName: `${props.appName}-cfn-execution-role`,
+        description: `${props.appName} CloudFormation Execution Role`,
       }
     );
 
-    /* Attach necessary permissions to the CloudFormation execution role */
-    executionRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: EXECUTION_ROLE_ACTIONS,
-        resources: ["*"],
-      })
+    /**
+     * Execution Policy: Allows CloudFormation to manage specified AWS resources.
+     */
+    const executionPolicy = new iam.Policy(
+      this,
+      `${props.appName}-cfn-execution-policy`,
+      {
+        policyName: `${props.appName}-execution-policy`,
+        statements: [
+          new iam.PolicyStatement({
+            actions: EXECUTION_ROLE_ACTIONS,
+            resources: ["*"],
+            sid: "ResourceManagementPolicy",
+          }),
+        ],
+      }
     );
+
+    /* Attach permissions to the CloudFormation execution role */
+    executionPolicy.attachToRole(executionRole);
   }
 }
