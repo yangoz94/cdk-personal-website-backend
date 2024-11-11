@@ -43,6 +43,7 @@ export class PrimaryResourcesStack extends cdk.Stack {
         vpc: infrastructureStack.vpc,
         dynamoDBVpcEndpoint: infrastructureStack.dynamoDBVpcEndpoint,
         cognitoConfig: props.cognitoConfig,
+        dynamoDBTable: infrastructureStack.dynamoDBTable,
       }
     );
 

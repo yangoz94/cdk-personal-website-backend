@@ -7,6 +7,7 @@ import {
 } from "../../constructs/APIGatewayWithCognitoUserPoolConstruct";
 import { ApiGatewayLambdaConstruct } from "../../constructs/APIGatewayLambdaConstruct";
 import { S3CloudFrontConstruct } from "../../constructs/S3CloudfrontConstruct";
+import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
 
 export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   appName: string;
@@ -19,6 +20,7 @@ export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   vpc: ec2.IVpc;
   dynamoDBVpcEndpoint: ec2.GatewayVpcEndpoint;
   cognitoConfig: CognitoConfig;
+  dynamoDBTable: TableV2;
 }
 
 export class MainAPINestedStack extends cdk.NestedStack {
@@ -68,7 +70,11 @@ export class MainAPINestedStack extends cdk.NestedStack {
         }),
         permissions: ["dynamodb:Query", "dynamodb:GetItem"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
-        entryFile: "hello.ts",
+        lambdaFolder: "hello",
+        envVariables: {
+          APP_NAME: props.appName,
+          DYNAMODB_TABLE_NAME: props.dynamoDBTable.tableName,
+        },
       }
     );
 

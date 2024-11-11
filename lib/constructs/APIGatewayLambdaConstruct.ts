@@ -6,6 +6,7 @@ import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
+import * as cdk from "aws-cdk-lib";
 
 /**
  * Properties for configuring the ApiGatewayLambdaConstruct.
@@ -32,9 +33,9 @@ export interface ApiGatewayLambdaProps {
   vpcSubnets: ec2.SubnetSelection;
 
   /**
-   * The entry file for the Lambda function.
+   * The entry folder for the Lambda function.
    */
-  entryFile: string;
+  lambdaFolder: string;
 
   /**
    * The timeout for the Lambda function (default: 30 seconds).
@@ -52,19 +53,14 @@ export interface ApiGatewayLambdaProps {
   vpcEndpoints?: (ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[];
 
   /**
-   * Node modules to bundle with the Lambda function (optional).
-   */
-  nodeModules?: string[];
-
-  /**
-   * External modules to exclude from bundling in the Lambda function (optional).
-   */
-  externalModules?: string[];
-
-  /**
    * Whether the route should be protected by an API Gateway authorizer.
    */
   isProtected?: boolean;
+
+  /**
+   * Environment variables to set in the Lambda function.
+   */
+  envVariables?: { [key: string]: string };
 }
 
 /**
@@ -106,15 +102,23 @@ export class ApiGatewayLambdaConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       handler: "handler",
-      entry: path.join(__dirname, `../../src/lambdas/${props.entryFile}`),
+      entry: path.join(
+        __dirname,
+        `../../src/lambdas/${props.lambdaFolder}/${props.lambdaFolder}.ts`
+      ),
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
+      environment: props.envVariables || {
+        APP_NAME: props.appName,
+      },
       bundling: {
         sourceMap: false,
-        nodeModules: props.nodeModules || [],
-        externalModules: props.externalModules || ["@aws-sdk/*", "aws-lambda"],
-        format: OutputFormat.CJS,
+        format: OutputFormat.ESM,
       },
+      depsLockFilePath: path.join(
+        __dirname,
+        `../../src/lambdas/${props.lambdaFolder}/package-lock.json`
+      ),
     });
 
     // Apply additional permissions if specified
