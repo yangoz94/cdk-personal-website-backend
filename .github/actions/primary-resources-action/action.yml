@@ -16,6 +16,7 @@ runs:
       run: |
         brew install --cask docker
         open -a Docker
+      shell: bash
 
     - name: Wait for Docker to Start
       run: |
@@ -23,6 +24,7 @@ runs:
           echo "Waiting for Docker to start..."
           sleep 5
         done
+      shell: bash
 
     - name: CDK deployment
       run: |
