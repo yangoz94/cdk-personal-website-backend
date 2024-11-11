@@ -113,7 +113,7 @@ export class ApiGatewayLambdaConstruct extends Construct {
         sourceMap: false,
         nodeModules: props.nodeModules || [],
         externalModules: props.externalModules || ["@aws-sdk/*", "aws-lambda"],
-        format: OutputFormat.ESM,
+        format: OutputFormat.CJS,
       },
     });
 

@@ -12,19 +12,11 @@ runs:
         role-session-name: ${{ env.APP_NAME }}-github-oidc-session
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Install Docker
-      run: |
-        brew install --cask docker
-        open -a Docker
-      shell: bash
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v3
 
-    - name: Wait for Docker to Start
-      run: |
-        while ! docker system info > /dev/null 2>&1; do
-          echo "Waiting for Docker to start..."
-          sleep 5
-        done
-      shell: bash
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
     - name: CDK deployment
       run: |
