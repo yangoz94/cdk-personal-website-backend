@@ -94,63 +94,63 @@ export class OIDCAndExecutionRolesConstruct extends Construct {
       })
     );
 
-    /* Additional policies for OIDC Role */
-    new iam.Policy(this, `${props.appName}-oidc-policy`, {
-      policyName: `${props.appName}-oidc-policy`,
-      statements: [
-        new iam.PolicyStatement({
-          sid: "AllowCDKDeployments",
-          actions: ["sts:AssumeRole"],
-          resources: [
-            `arn:aws:iam::${cdk.Stack.of(this).account}:role/cdk-${
-              props.appName
-            }-*`,
-          ],
-        }),
-        new iam.PolicyStatement({
-          sid: "CloudFormationActions",
-          actions: ["cloudformation:*"],
-          resources: ["*"],
-        }),
+    // /* Additional policies for OIDC Role */
+    // new iam.Policy(this, `${props.appName}-oidc-policy`, {
+    //   policyName: `${props.appName}-oidc-policy`,
+    //   statements: [
+    //     new iam.PolicyStatement({
+    //       sid: "AllowCDKDeployments",
+    //       actions: ["sts:AssumeRole"],
+    //       resources: [
+    //         `arn:aws:iam::${cdk.Stack.of(this).account}:role/cdk-${
+    //           props.appName
+    //         }-*`,
+    //       ],
+    //     }),
+    //     new iam.PolicyStatement({
+    //       sid: "CloudFormationActions",
+    //       actions: ["cloudformation:*"],
+    //       resources: ["*"],
+    //     }),
 
-        new iam.PolicyStatement({
-          sid: "S3BucketActions",
-          actions: ["s3:*"],
-          resources: [`arn:aws:s3:::${props.appName}-*`],
-        }),
+    //     new iam.PolicyStatement({
+    //       sid: "S3BucketActions",
+    //       actions: ["s3:*"],
+    //       resources: [`arn:aws:s3:::${props.appName}-*`],
+    //     }),
 
-        new iam.PolicyStatement({
-          sid: "SSMGet",
-          actions: ["ssm:GetParameter"],
-          resources: [
-            `arn:aws:ssm:${cdk.Stack.of(this).region}:${
-              cdk.Stack.of(this).account
-            }:parameter/cdk-bootstrap/${props.appName}/version`,
-          ],
-        }),
-        
-        new iam.PolicyStatement({
-          sid: "ReadEventSchemaRegistry",
-          actions: [
-            "schemas:DescribeRegistry",
-            "schemas:ListSchemas",
-            "schemas:SearchSchemas",
-            "schemas:DescribeSchema",
-            "schemas:ListSchemaVersions",
-            "schemas:DescribeCodeBinding",
-            "schemas:GetCodeBindingSource",
-          ],
-          resources: [
-            `arn:aws:schemas:${cdk.Stack.of(this).region}:${
-              cdk.Stack.of(this).account
-            }:registry/*`,
-            `arn:aws:schemas:${cdk.Stack.of(this).region}:${
-              cdk.Stack.of(this).account
-            }:schema/*`,
-          ],
-        }),
-      ],
-    }).attachToRole(githubOidcRole);
+    //     new iam.PolicyStatement({
+    //       sid: "SSMGet",
+    //       actions: ["ssm:GetParameter"],
+    //       resources: [
+    //         `arn:aws:ssm:${cdk.Stack.of(this).region}:${
+    //           cdk.Stack.of(this).account
+    //         }:parameter/cdk-bootstrap/${props.appName}/version`,
+    //       ],
+    //     }),
+
+    //     new iam.PolicyStatement({
+    //       sid: "ReadEventSchemaRegistry",
+    //       actions: [
+    //         "schemas:DescribeRegistry",
+    //         "schemas:ListSchemas",
+    //         "schemas:SearchSchemas",
+    //         "schemas:DescribeSchema",
+    //         "schemas:ListSchemaVersions",
+    //         "schemas:DescribeCodeBinding",
+    //         "schemas:GetCodeBindingSource",
+    //       ],
+    //       resources: [
+    //         `arn:aws:schemas:${cdk.Stack.of(this).region}:${
+    //           cdk.Stack.of(this).account
+    //         }:registry/*`,
+    //         `arn:aws:schemas:${cdk.Stack.of(this).region}:${
+    //           cdk.Stack.of(this).account
+    //         }:schema/*`,
+    //       ],
+    //     }),
+    //   ],
+    // }).attachToRole(githubOidcRole);
 
     /**
      * CloudFormation Execution Role: This role allows CloudFormation
