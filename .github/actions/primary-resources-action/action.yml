@@ -1,0 +1,20 @@
+name: Deploy Primary Resources
+
+description: "Deploy the primary resources for the application such as API Gateway, Lambda functions, DynamoDB tables, S3 buckets with CDN and more"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.APP_NAME }}-github-oidc-role
+        role-session-name: ${{ env.APP_NAME }}-github-oidc-role
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: CDK deployment
+      run: |
+        export CI=true
+        npm ci
+        cdk deploy ${{ env.APP_NAME }}-primary-resources-stack --exclusively --output cdk.primary.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
+      shell: bash

@@ -2,8 +2,8 @@
 -include .env
 export
 
-.PHONY: synth bootstrap _deploy-core-resources _destroy-core-resources _deploy-primary-resources _destroy-primary-resources set-up deploy __destroy register_user get_user
-
+.PHONY: synth bootstrap _deploy-core-resources _destroy-core-resources _deploy-primary-resources _destroy-primary-resources set-up deploy __destroy register_user get_user delete_user
+ 
 synth:
 	npx cdk synth $(APP_NAME)-core-resources-stack --qualifier $(CDK_QUALIFIER) --profile $(AWS_PROFILE)
 	npx cdk synth $(APP_NAME)-primary-resources-stack --qualifier $(CDK_QUALIFIER) --profile $(AWS_PROFILE)
@@ -42,7 +42,6 @@ destroy_all:
 		echo "Destroy operation cancelled."; \
 	fi
 
-# Register a new user interactively, add to "Admins" group, and set the final password
 register_user:
 	@echo "Enter username: " && read username && \
 	echo "Enter email: " && read email && \
@@ -86,3 +85,12 @@ get_user:
 		--client-id $(shell aws ssm get-parameter --name /$(APP_NAME)/userpool-client-id --query Parameter.Value --output text) \
 		--auth-parameters USERNAME=$$username,PASSWORD=$$password \
 		--profile $(AWS_PROFILE)
+
+delete_user:
+	@read -p "Enter username to delete: " username; \
+	echo "Deleting user $$username..."; \
+	aws cognito-idp admin-delete-user \
+		--user-pool-id $(shell aws ssm get-parameter --name /$(APP_NAME)/userpool-id --query Parameter.Value --output text) \
+		--username $$username \
+		--profile $(AWS_PROFILE); \
+	echo "User $$username has been deleted."

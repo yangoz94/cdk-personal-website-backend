@@ -1,0 +1,49 @@
+name: Personal Website Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}
+
+env:
+  APP_NAME: ${{ vars.APP_NAME }}
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  CDK_QUALIFIER: ${{ vars.CDK_QUALIFIER }}
+  DOMAIN: ${{ vars.DOMAIN }}
+  API_SUB_DOMAIN: ${{ vars.API_SUB_DOMAIN }}
+  API_VERSION: ${{ vars.API_VERSION }}
+  AUTH_SUB_DOMAIN: ${{ vars.AUTH_SUB_DOMAIN }}
+  CDN_SUB_DOMAIN: ${{ vars.CDN_SUB_DOMAIN }}
+  HOSTED_ZONE_ID: ${{ vars.HOSTED_ZONE_ID }}
+
+jobs:
+  core_resources:
+    name: Core Resources
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Core Resources
+        uses: ./.github/actions/core-resources-action
+
+  primary_resources:
+    name: Primary Resources
+    runs-on: macos-latest
+    needs: core_resources
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Primary Resources
+        uses: ./.github/actions/primary-resources-action

@@ -1,0 +1,20 @@
+name: Deploy Core Resources
+
+description: "Deploy the core resources for the application including VPC, subnets, route tables, internet gateway, IAM roles and more"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.APP_NAME }}-github-oidc-role
+        role-session-name: ${{ env.APP_NAME }}-github-oidc-role
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: CDK deployment
+      run: |
+        export CI=true
+        npm ci
+        cdk deploy ${{ env.APP_NAME }}-core-resources-stack --exclusively --output cdk.core.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
+      shell: bash

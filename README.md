@@ -30,9 +30,28 @@
 12. Run `make set-up` in your project's root directory. This will do the following;
 
 - bootstrap (with your qualifier you specified)
-- deploy core networking resources (VPC, Subnets, VPC Endpoints, Route Tables, Internet Gateway, OIDC role, CFN task execution role etc for CI/CD)
+- deploy core networking resources (VPC, Subnets, VPC Endpoints, Route Tables, Internet Gateway, OIDC role, CFN task execution role etc in case you need to set up CI/CD)
 - deploy primary resources(APIGW, Lambda(s), DynamoDB, S3 bucket with Cloudfront Distribution etc)
 
 13. In subsequent deployments, only run `make deploy` and it will update/create/delete resources in your stacks.
 
 14. See CI/CD Pipeline section for detailed instructions on how to set up Github Actions with OICD roles and permissions.
+
+# Setting up CI/CD After Initial Deployment
+
+1. Once your initial deployment completes successfully following the above instructions, you can set up your CI/CD to run deployments on GitHub Actions runners, rather than from your local machine.
+
+2. To do this, navigate to your GitHub repository where you pushed this code, click on the `Settings` tab, then `Secrets and Variables` > `Actions`, go to the `Variables` tab, and click on `New Repository Variable`.
+
+3. Add all the environment variables from the `.env.sample` file as variables here (excluding `AWS_PROFILE` as it’s not needed for CI/CD).
+
+Note: The core environment variables in .env.sample are already referenced in .github/workflows/main.yml using ${{ vars.<ENV_VAR_NAME> }}, but when you add more environment variables, you’ll need to update main.yml accordingly so that your workflow captures and injects the new environment variables correctly.
+
+Note: Currently, this project only uses non-sensitive variables, so they are added as Variables instead of Secrets. If you have sensitive values, such as API keys or passwords, it’s recommended to add them as Secrets rather than Variables. In that case, reference these secrets in main.yml using ${{ secrets.<ENV_SECRET_NAME> }}.
+
+Note: If you plan to have multiple environments (e.g., dev, qa, prod) and need environment-specific variables, consider the following:
+
+    •	Creating separate workflows or jobs triggered by environment-specific branches (e.g., pushes to the develop branch trigger the develop_core_resources deployment job in the workflow).
+    •	Creating GitHub Environments for each environment(requires paid Github Plan) and adding them to the corresponding workflow or job with environment: YOUR_ENVIRONMENT_NAME. This can be helpful if you need to specify different AWS_ACCOUNT_ID values for different environments, allowing you to deploy each environment to a different account.
+
+These options are outside the scope of this simple backend for a personal website, but they are critical for larger projects.
