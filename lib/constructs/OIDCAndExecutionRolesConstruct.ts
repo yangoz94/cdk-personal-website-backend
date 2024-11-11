@@ -55,15 +55,11 @@ export class OIDCAndExecutionRolesConstruct extends Construct {
     const region = cdk.Stack.of(this).account;
 
     /* Create the OIDC provider for GitHub Actions */
-    const oidcProvider = new iam.OpenIdConnectProvider(
-      this,
-      `${props.appName}-oidc-provider`,
-      {
-        url: "https://token.actions.githubusercontent.com",
-        clientIds: ["sts.amazonaws.com"],
-        thumbprints: ["6938fd4d98bab03faadb97b34396831e3780aea1"],
-      }
-    );
+    const oidcProvider = new iam.OpenIdConnectProvider(this, `oidc-provider`, {
+      url: "https://token.actions.githubusercontent.com",
+      clientIds: ["sts.amazonaws.com"],
+      thumbprints: ["6938fd4d98bab03faadb97b34396831e3780aea1"],
+    });
 
     /* GitHub Actions OIDC Role with permission to assume the execution role */
     const githubOidcRole = new iam.Role(

@@ -15,7 +15,7 @@ const coreResourcesStack = new CoreResourcesStack(
   `${APP_NAME}-core-resources-stack`,
   {
     appName: APP_NAME,
-    githubRepoName: process.env.GITHUB_REPO_NAME || "", // CI/CD will automatically pick up this. No need to specify for local deployment.
+    githubRepoName: process.env.REPOSITORY_NAME || "",
     env: {
       account: process.env.AWS_ACCOUNT_ID || "",
       region: process.env.AWS_REGION || "",
