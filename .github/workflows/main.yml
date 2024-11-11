@@ -13,6 +13,7 @@ concurrency:
   group: ${{ github.ref }}
 
 env:
+  GITHUB_REPO_NAME: ${{ github.repository }}
   APP_NAME: ${{ vars.APP_NAME }}
   AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
   AWS_REGION: ${{ vars.AWS_REGION }}
