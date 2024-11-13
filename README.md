@@ -39,6 +39,11 @@ WARNING: These instructions were tested on MacOS devices with ARM architecture. 
 
 14. See CI/CD Pipeline section for detailed instructions on how to set up Github Actions with OICD roles and permissions.
 
+# Creating Users on Cognito and Getting Their Information
+1. Run `make register_user` to create a user and input the required fields such as username,email and password. Upon user creation, user's tokens will be returned. Copy the Id token and add it to the Authorization header to make requests to protected api routes.Otherwise, you will get `401 Unauthorized` error.
+2. User will be created and put in admin group. Cognito pool is configured not to allow self-signin given this is a personal website and the only way to sign up a new user is to run this command or create users via AWS Console.
+3. To get the user details, run `make get_user`.
+
 # Setting up CI/CD After Initial Deployment
 
 1. Once your initial deployment completes successfully following the above instructions, you can set up your CI/CD to run deployments on GitHub Actions runners, rather than from your local machine.

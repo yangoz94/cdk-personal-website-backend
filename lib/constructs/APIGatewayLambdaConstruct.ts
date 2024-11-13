@@ -6,7 +6,6 @@ import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
-import * as cdk from "aws-cdk-lib";
 
 /**
  * Properties for configuring the ApiGatewayLambdaConstruct.
@@ -33,9 +32,14 @@ export interface ApiGatewayLambdaProps {
   vpcSubnets: ec2.SubnetSelection;
 
   /**
-   * The entry folder for the Lambda function.
+   * The entry file for the Lambda function.
    */
-  lambdaFolder: string;
+  entryFile: string;
+
+  /**
+   * The parent folder that contains the Lambda function source code.
+   */
+  parentDir?: string;
 
   /**
    * The timeout for the Lambda function (default: 30 seconds).
@@ -53,12 +57,22 @@ export interface ApiGatewayLambdaProps {
   vpcEndpoints?: (ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[];
 
   /**
+   * Node modules to bundle with the Lambda function (optional).
+   */
+  nodeModules?: string[];
+
+  /**
+   * External modules to exclude from bundling in the Lambda function (optional).
+   */
+  externalModules?: string[];
+
+  /**
    * Whether the route should be protected by an API Gateway authorizer.
    */
   isProtected?: boolean;
 
   /**
-   * Environment variables to set in the Lambda function.
+   * Environment variables to pass to the Lambda function (optional).
    */
   envVariables?: { [key: string]: string };
 }
@@ -94,6 +108,10 @@ export class ApiGatewayLambdaConstruct extends Construct {
   constructor(scope: Construct, id: string, props: ApiGatewayLambdaProps) {
     super(scope, id);
 
+    const lambdaPath = props.parentDir
+      ? `../../lambdas/${props.parentDir}/${props.entryFile}`
+      : `../../src/lambdas/${props.entryFile}`;
+
     // Create the Lambda function with configurable entry file and settings
     this.lambdaFunction = new nodejs.NodejsFunction(this, props.lambdaName, {
       functionName: `${props.lambdaName}`,
@@ -102,36 +120,28 @@ export class ApiGatewayLambdaConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       handler: "handler",
-      entry: path.join(
-        __dirname,
-        `../../src/lambdas/${props.lambdaFolder}/${props.lambdaFolder}.ts`
-      ),
+      entry: path.join(__dirname, lambdaPath),
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
-      environment: props.envVariables || {
-        APP_NAME: props.appName,
-      },
+      environment: props.envVariables || undefined,
       bundling: {
         sourceMap: false,
+        nodeModules: props.nodeModules || [],
+        externalModules: props.externalModules || ["@aws-sdk/*", "aws-lambda"],
         format: OutputFormat.ESM,
       },
-      depsLockFilePath: path.join(
-        __dirname,
-        `../../src/lambdas/${props.lambdaFolder}/package-lock.json`
-      ),
+      description: `Lambda function for ${props.lambdaName}`,
     });
 
-    // Apply additional permissions if specified
     if (props.permissions) {
       this.addPermissions(props.permissions);
     }
 
-    // Configure VPC endpoints if provided
     if (props.vpcEndpoints) {
       this.configureVpcEndpoints(props.vpcEndpoints);
     }
 
-    // Add permission for API Gateway to invoke the Lambda function
+    /* Add permission for API Gateway to invoke the Lambda function */
     this.lambdaFunction.addPermission("ApiGatewayInvoke", {
       principal: new iam.ServicePrincipal("apigateway.amazonaws.com"),
     });

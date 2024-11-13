@@ -21,6 +21,6 @@ runs:
     - name: CDK deployment
       run: |
         export CI=true
-        npm ci
+        npm ci --only=production
         npx cdk deploy ${{ env.APP_NAME }}-core-resources-stack --exclusively --output cdk.core.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
       shell: bash

@@ -60,17 +60,17 @@ export class MainAPINestedStack extends cdk.NestedStack {
     /* Instantiate Hello Lambda function */
     this.helloFunction = new ApiGatewayLambdaConstruct(
       this,
-      `${props.appName}-hello-function`,
+      `${props.appName}-hello-function-x`,
       {
         appName: props.appName,
-        lambdaName: `${props.appName}-hello`,
+        lambdaName: `${props.appName}-hello-x`,
         vpc: props.vpc,
         vpcSubnets: props.vpc.selectSubnets({
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }),
         permissions: ["dynamodb:Query", "dynamodb:GetItem"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
-        lambdaFolder: "hello",
+        entryFile: "hello.ts",
         envVariables: {
           APP_NAME: props.appName,
           DYNAMODB_TABLE_NAME: props.dynamoDBTable.tableName,
@@ -85,6 +85,7 @@ export class MainAPINestedStack extends cdk.NestedStack {
       this.helloFunction.lambdaFunction,
       false
     );
+    /* add route to API Gateway (protected) */
     this.apiGateway.addMethod(
       `/${props.apiVersion}/hello2`,
       "GET",
