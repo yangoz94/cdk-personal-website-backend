@@ -81,14 +81,14 @@ export class MainAPINestedStack extends cdk.NestedStack {
     /* add route to API Gateway */
     this.apiGateway.addMethod(
       `/${props.apiVersion}/hello`,
-      "GET",
+      "POST",
       this.helloFunction.lambdaFunction,
       false
     );
     /* add route to API Gateway (protected) */
     this.apiGateway.addMethod(
       `/${props.apiVersion}/hello2`,
-      "GET",
+      "POST",
       this.helloFunction.lambdaFunction,
       true
     );
