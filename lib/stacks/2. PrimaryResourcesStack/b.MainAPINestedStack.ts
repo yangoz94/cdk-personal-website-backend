@@ -5,9 +5,10 @@ import {
   APIGatewayWithCognitoUserPoolConstruct,
   CognitoConfig,
 } from "../../constructs/APIGatewayWithCognitoUserPoolConstruct";
-import { ApiGatewayLambdaConstruct } from "../../constructs/APIGatewayLambdaConstruct";
+import { SynchronousLambdaConstruct } from "../../constructs/SynchronousLambdaConstruct";
 import { S3CloudFrontConstruct } from "../../constructs/S3CloudfrontConstruct";
 import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
+import path = require("path");
 
 export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   appName: string;
@@ -23,10 +24,25 @@ export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   dynamoDBTable: TableV2;
 }
 
+export interface APIRouteDefinition {
+  route: string;
+  method: APIMethodsEnum;
+  lambdaFunction: SynchronousLambdaConstruct;
+  isProtected: boolean;
+}
+
+export enum APIMethodsEnum {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+}
+
 export class MainAPINestedStack extends cdk.NestedStack {
   public readonly apiGateway: APIGatewayWithCognitoUserPoolConstruct;
   public readonly s3BucketWithCDN: S3CloudFrontConstruct;
-  public readonly helloFunction: ApiGatewayLambdaConstruct;
+  public readonly helloFunction: SynchronousLambdaConstruct;
+  public readonly allRoutes: APIRouteDefinition[] = [];
 
   constructor(scope: Construct, id: string, props: MainAPINestedStackProps) {
     super(scope, id, props);
@@ -58,7 +74,7 @@ export class MainAPINestedStack extends cdk.NestedStack {
     );
 
     /* Instantiate Hello Lambda function */
-    this.helloFunction = new ApiGatewayLambdaConstruct(
+    this.helloFunction = new SynchronousLambdaConstruct(
       this,
       `${props.appName}-hello-function-x`,
       {
@@ -68,9 +84,10 @@ export class MainAPINestedStack extends cdk.NestedStack {
         vpcSubnets: props.vpc.selectSubnets({
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }),
-        permissions: ["dynamodb:Query", "dynamodb:GetItem"],
+        permissions: ["dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem"],
+        nodeModules: ["uuid", "dynamodb-toolbox"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
-        entryFile: "hello.ts",
+        entry: path.join(__dirname, "../../../src/lambdas/hello/hello.ts"),
         envVariables: {
           APP_NAME: props.appName,
           DYNAMODB_TABLE_NAME: props.dynamoDBTable.tableName,
@@ -78,19 +95,28 @@ export class MainAPINestedStack extends cdk.NestedStack {
       }
     );
 
-    /* add route to API Gateway */
-    this.apiGateway.addMethod(
-      `/${props.apiVersion}/hello`,
-      "POST",
-      this.helloFunction.lambdaFunction,
-      false
-    );
-    /* add route to API Gateway (protected) */
-    this.apiGateway.addMethod(
-      `/${props.apiVersion}/hello2`,
-      "POST",
-      this.helloFunction.lambdaFunction,
-      true
-    );
+    this.allRoutes = [
+      {
+        route: `/${props.apiVersion}/hello`,
+        method: APIMethodsEnum.POST,
+        lambdaFunction: this.helloFunction,
+        isProtected: false,
+      },
+      {
+        route: `/${props.apiVersion}/hello2`,
+        method: APIMethodsEnum.POST,
+        lambdaFunction: this.helloFunction,
+        isProtected: true,
+      },
+    ];
+
+    this.allRoutes.forEach((route) => {
+      this.apiGateway.addMethod(
+        route.route,
+        route.method,
+        route.lambdaFunction.lambdaFunction,
+        route.isProtected
+      );
+    });
   }
 }

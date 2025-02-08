@@ -22,7 +22,11 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "paths": {
+      "@entities/*": ["./lib/entities/*"],
+      "@constructs/*": ["./lib/constructs/*"]
+    }
   },
   "exclude": [
     "node_modules",

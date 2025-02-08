@@ -18,6 +18,7 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "~5.4.5"
   },
   "dependencies": {
@@ -29,5 +30,13 @@
     "dynamodb-toolbox": "^1.14.5",
     "source-map-support": "^0.5.21",
     "zod": "^3.23.8"
-  }
+  },
+  "description": "WARNING: These instructions were tested on MacOS devices with ARM architecture. If your system is using x86, you might need to make some changes to the architecture and platform fields in the lambda construct to avoid errors while bundling during deployment.",
+  "main": "jest.config.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

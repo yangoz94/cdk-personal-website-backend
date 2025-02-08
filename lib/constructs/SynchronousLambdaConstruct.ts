@@ -8,9 +8,9 @@ import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
 
 /**
- * Properties for configuring the ApiGatewayLambdaConstruct.
+ * Properties for configuring the SynchronousLambdaConstruct.
  */
-export interface ApiGatewayLambdaProps {
+export interface SynchronousLambdaConstructProps {
   /**
    * The application name used as a prefix in resource names.
    */
@@ -30,17 +30,10 @@ export interface ApiGatewayLambdaProps {
    * The VPC subnets for the Lambda function.
    */
   vpcSubnets: ec2.SubnetSelection;
-
   /**
-   * The entry file for the Lambda function.
+   * The directory path to the entry file for the Lambda function.
    */
-  entryFile: string;
-
-  /**
-   * The parent folder that contains the Lambda function source code.
-   */
-  parentDir?: string;
-
+  entry: string;
   /**
    * The timeout for the Lambda function (default: 30 seconds).
    */
@@ -80,9 +73,9 @@ export interface ApiGatewayLambdaProps {
 /**
  * Creates a Lambda function integrated with an API Gateway resource,
  * with optional configuration for VPC, permissions, VPC endpoints, and route protection.
- *
+ 
  * @example
- * const apiGatewayLambda = new ApiGatewayLambdaConstruct(this, 'MyLambdaFunction', {
+ * const apiGatewayLambda = new SynchronousLambdaConstruct(this, 'MyLambdaFunction', {
  *   appName: 'myApp',
  *   lambdaName: 'myLambda',
  *   vpc: myVpc,
@@ -92,25 +85,25 @@ export interface ApiGatewayLambdaProps {
  *   isProtected: true, // Protect this route
  * });
  */
-export class ApiGatewayLambdaConstruct extends Construct {
+export class SynchronousLambdaConstruct extends Construct {
   /**
    * The created Lambda function resource.
    */
   public readonly lambdaFunction: lambda.Function;
 
   /**
-   * Constructs a new instance of the ApiGatewayLambdaConstruct.
+   * Constructs a new instance of the SynchronousLambdaConstruct.
    *
    * @param {Construct} scope - The parent construct, typically a CDK stack.
    * @param {string} id - The unique identifier for this construct.
-   * @param {ApiGatewayLambdaProps} props - Properties for configuring the Lambda function and API Gateway integration.
+   * @param {SynchronousLambdaConstructProps} props - Properties for configuring the Lambda function and API Gateway integration.
    */
-  constructor(scope: Construct, id: string, props: ApiGatewayLambdaProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: SynchronousLambdaConstructProps
+  ) {
     super(scope, id);
-
-    const lambdaPath = props.parentDir
-      ? `../../lambdas/${props.parentDir}/${props.entryFile}`
-      : `../../src/lambdas/${props.entryFile}`;
 
     // Create the Lambda function with configurable entry file and settings
     this.lambdaFunction = new nodejs.NodejsFunction(this, props.lambdaName, {
@@ -119,8 +112,11 @@ export class ApiGatewayLambdaConstruct extends Construct {
       vpcSubnets: props.vpcSubnets,
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
-      handler: "handler",
-      entry: path.join(__dirname, lambdaPath),
+      entry: props.entry,
+      depsLockFilePath: props.entry.replace(
+        /\/[^/]+\.ts$/,
+        "/package-lock.json"
+      ),
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
       environment: props.envVariables || undefined,
