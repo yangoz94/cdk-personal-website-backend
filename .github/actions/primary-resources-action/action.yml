@@ -20,6 +20,7 @@ runs:
 
     - name: Analyze Bundle Size
       run: npx esbuild src/lambdas/hello/hello.ts --bundle --analyze
+      shell: bash
 
     - name: CDK deployment
       run: |
