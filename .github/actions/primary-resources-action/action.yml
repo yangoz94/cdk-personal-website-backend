@@ -34,7 +34,7 @@ runs:
           unzip -l "$zip" | awk '{print $1, $2, $3, $4, $5}' | sort -rh | head -20
         done
         du -sh cdk.out
-    shell: bash
+      shell: bash
 
 
 
