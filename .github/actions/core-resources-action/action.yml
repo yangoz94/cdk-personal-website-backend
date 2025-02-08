@@ -18,9 +18,13 @@ runs:
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Analyze Bundle Size
+      run: npx esbuild src/lambdas/hello/hello.ts --bundle --analyze
+
     - name: CDK deployment
       run: |
         export CI=true
+        npm cache clean --force
         npm ci 
         npx cdk deploy ${{ env.APP_NAME }}-core-resources-stack --exclusively --output cdk.core.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
       shell: bash

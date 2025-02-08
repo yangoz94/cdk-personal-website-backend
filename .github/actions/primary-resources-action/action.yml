@@ -18,6 +18,9 @@ runs:
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Analyze Bundle Size
+      run: npx esbuild src/lambdas/hello/hello.ts --bundle --analyze
+
     - name: CDK deployment
       run: |
         export CI=true
