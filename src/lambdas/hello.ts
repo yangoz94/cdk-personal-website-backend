@@ -10,9 +10,8 @@ const requestBodySchema = z.object({
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log(`Function invoked with event: ${JSON.stringify(event)}`);
+  console.log(`Function invoked with the following: ${JSON.stringify(event)}`);
 
-  // Parse and validate the request body if it exists
   let body;
   try {
     body = JSON.parse(event.body || "{}");
@@ -29,7 +28,7 @@ export const handler = async (
     return {
       statusCode: 400,
       body: JSON.stringify({
-        message: "Validation failed",
+        message: "Validation failed - check errors for more details.",
         errors: parseResult.error.errors,
       }),
     };

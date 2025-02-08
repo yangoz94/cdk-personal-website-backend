@@ -113,10 +113,6 @@ export class SynchronousLambdaConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       entry: props.entry,
-      depsLockFilePath: props.entry.replace(
-        /\/[^/]+\.ts$/,
-        "/package-lock.json"
-      ),
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
       environment: props.envVariables || undefined,

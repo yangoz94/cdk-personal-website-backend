@@ -4,3 +4,12 @@
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+cdk.core.out
+cdk.primary.out
+node_modules/
+*node_modules
+tests/
+docs/
+*.md
+cdk.out/
+*.log

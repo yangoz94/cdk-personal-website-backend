@@ -85,9 +85,10 @@ export class MainAPINestedStack extends cdk.NestedStack {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }),
         permissions: ["dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem"],
-        nodeModules: ["uuid", "dynamodb-toolbox"],
+        nodeModules: ["uuid", "dynamodb-toolbox", "zod"],
+        externalModules: ["aws-sdk"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
-        entry: path.join(__dirname, "../../../src/lambdas/hello/hello.ts"),
+        entry: path.join(__dirname, "../../../src/lambdas/hello.ts"),
         envVariables: {
           APP_NAME: props.appName,
           DYNAMODB_TABLE_NAME: props.dynamoDBTable.tableName,
