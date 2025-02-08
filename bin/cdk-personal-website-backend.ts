@@ -10,6 +10,10 @@ const app = new cdk.App();
 /* Specify the application name to use as a prefix in resource names. */
 const APP_NAME = process.env.APP_NAME || "";
 
+const synthesizer = new cdk.DefaultStackSynthesizer({
+  qualifier: process.env.CDK_QUALIFIER || "",
+});
+
 const coreResourcesStack = new CoreResourcesStack(
   app,
   `${APP_NAME}-core-resources-stack`,
@@ -20,9 +24,7 @@ const coreResourcesStack = new CoreResourcesStack(
       account: process.env.AWS_ACCOUNT_ID || "",
       region: process.env.AWS_REGION || "",
     },
-    synthesizer: new cdk.DefaultStackSynthesizer({
-      qualifier: process.env.CDK_QUALIFIER || "",
-    }),
+    synthesizer: synthesizer,
   }
 );
 
@@ -42,9 +44,7 @@ const primaryResourcesStack = new PrimaryResourcesStack(
       account: process.env.AWS_ACCOUNT_ID || "",
       region: process.env.AWS_REGION || "",
     },
-    synthesizer: new cdk.DefaultStackSynthesizer({
-      qualifier: process.env.CDK_QUALIFIER || "",
-    }),
+    synthesizer: synthesizer,
     appName: APP_NAME,
     domain: process.env.DOMAIN || "",
     apiSubDomain: process.env.API_SUB_DOMAIN || "",
