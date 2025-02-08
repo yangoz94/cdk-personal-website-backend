@@ -25,9 +25,18 @@ runs:
         npm ci
       shell: bash
 
-    - name: Analyze Bundle Size
-      run: npx esbuild  --bundle --analyze
-      shell: bash
+    - name: Debug CDK Assets
+      run: |
+        npx cdk synth
+        find cdk.out -name "*.zip" -exec du -sh {} +
+        for zip in $(find cdk.out -name "*.zip"); do
+          echo "Inspecting $zip"
+          unzip -l "$zip" | awk '{print $1, $2, $3, $4, $5}' | sort -rh | head -20
+        done
+        du -sh cdk.out
+    shell: bash
+
+
 
     - name: CDK deployment
       run: |
