@@ -3,7 +3,6 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
-import * as path from "path";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
 

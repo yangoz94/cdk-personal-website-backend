@@ -86,7 +86,7 @@ export class MainAPINestedStack extends cdk.NestedStack {
         }),
         permissions: ["dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem"],
         nodeModules: ["uuid", "dynamodb-toolbox", "zod"],
-        externalModules: ["aws-sdk"],
+        externalModules: ["@aws-sdk/*", "aws-lambda"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
         entry: path.join(__dirname, "../../../src/lambdas/hello.ts"),
         envVariables: {
