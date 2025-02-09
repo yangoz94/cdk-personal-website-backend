@@ -22,7 +22,7 @@ runs:
       run: |
         export CI=true
         npm cache clean --force
-        npm ci
+        npm install
       shell: bash
 
     - name: CDK deployment

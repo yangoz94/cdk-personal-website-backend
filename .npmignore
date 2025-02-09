@@ -8,8 +8,13 @@ cdk.core.out
 cdk.primary.out
 node_modules/
 *node_modules
-tests/
-docs/
 *.md
 cdk.out/
 *.log
+awscli/
+botocore/
+*.pyc
+*.gz
+tests/
+docs/
+
