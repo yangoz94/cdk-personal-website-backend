@@ -25,19 +25,6 @@ runs:
         npm install
       shell: bash
 
-    - name: Debug CDK Assets
-      run: |
-        npx cdk synth
-        find cdk.out -name "*.zip" -exec du -sh {} +
-        for zip in $(find cdk.out -name "*.zip"); do
-          echo "Inspecting $zip"
-          unzip -l "$zip" | awk '{print $1, $2, $3, $4, $5}' | sort -rh | head -20
-        done
-        du -sh cdk.out
-      shell: bash
-
-
-
     - name: CDK deployment
       run: |
         npx cdk deploy ${{ env.APP_NAME }}-primary-resources-stack --exclusively --output cdk.primary.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
