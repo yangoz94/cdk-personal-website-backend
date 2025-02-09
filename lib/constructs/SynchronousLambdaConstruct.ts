@@ -104,6 +104,11 @@ export class SynchronousLambdaConstruct extends Construct {
   ) {
     super(scope, id);
 
+    const depsLockFilePath = props.entry.replace(
+      /\/[^/]+\.ts$/,
+      "/package-lock.json"
+    );
+
     // Create the Lambda function with configurable entry file and settings
     this.lambdaFunction = new nodejs.NodejsFunction(this, props.lambdaName, {
       functionName: `${props.lambdaName}`,
@@ -111,6 +116,7 @@ export class SynchronousLambdaConstruct extends Construct {
       vpcSubnets: props.vpcSubnets,
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
+      depsLockFilePath: depsLockFilePath,
       entry: props.entry,
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
