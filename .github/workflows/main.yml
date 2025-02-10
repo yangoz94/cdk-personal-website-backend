@@ -9,8 +9,6 @@ permissions:
   id-token: write
   contents: read
 
-concurrency:
-  group: ${{ github.ref }}
 
 env:
   APP_NAME: ${{ vars.APP_NAME }}

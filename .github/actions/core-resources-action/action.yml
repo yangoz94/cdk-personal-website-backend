@@ -25,13 +25,6 @@ runs:
         npm install
       shell: bash
 
-    - name: Clean CDK Cache
-      run: |
-        rm -rf cdk.out
-        rm -rf cdk.core.out
-        rm -rf cdk.primary.out
-      shell: bash
-
     - name: CDK deployment
       run: |
         npx cdk deploy ${{ env.APP_NAME }}-core-resources-stack  --exclusively --output cdk.core.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
