@@ -11,7 +11,7 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log(
-    `X - Function i nvoked with the following: ${JSON.stringify(event)}`
+    `Y - Function i nvoked with the following: ${JSON.stringify(event)}`
   );
 
   let body;
