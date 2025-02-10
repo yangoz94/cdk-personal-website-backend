@@ -10,7 +10,10 @@ const requestBodySchema = z.object({
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log(`Function innvoked with the following: ${JSON.stringify(event)}`);
+  console.log("Hello Lambda function invoked!");
+  console.log(
+    `Function  innvoked with the following: ${JSON.stringify(event)}`
+  );
 
   let body;
   try {
