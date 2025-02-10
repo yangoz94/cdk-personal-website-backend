@@ -12,11 +12,19 @@ runs:
         role-session-name: ${{ env.APP_NAME }}-github-oidc-role
         aws-region: ${{ env.AWS_REGION }}
 
+    # Disable caching in QEMU setup
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v3
+      with:
+        cache: false # Prevent storing QEMU binaries in GitHub cache
 
+    # Disable caching in Buildx by making it ephemeral
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
+      with:
+        install: true
+        ephemeral: true # Create an ephemeral builder (not persisted)
+        version: latest
 
     - name: Install Dependencies
       run: |
@@ -27,5 +35,10 @@ runs:
 
     - name: CDK deployment
       run: |
-        npx cdk deploy ${{ env.APP_NAME }}-primary-resources-stack --exclusively --output cdk.primary.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
+        npx cdk deploy ${{ env.APP_NAME }}-primary-resources-stack \
+          --exclusively \
+          --output cdk.primary.out \
+          --verbose \
+          --qualifier ${{ env.CDK_QUALIFIER }} \
+          --require-approval never
       shell: bash
