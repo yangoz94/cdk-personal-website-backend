@@ -27,5 +27,5 @@ runs:
 
     - name: CDK deployment
       run: |
-        npx cdk deploy ${{ env.APP_NAME }}-core-resources-stack --exclusively --output cdk.core.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
+        npx cdk deploy ${{ env.APP_NAME }}-core-resources-stack --output cdk.core.out --verbose --qualifier ${{ env.CDK_QUALIFIER }} --require-approval never
       shell: bash
