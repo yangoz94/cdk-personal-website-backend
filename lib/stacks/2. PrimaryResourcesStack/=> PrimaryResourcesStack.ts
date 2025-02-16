@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { InfrastructureNestedStack } from "./a.InfrastructureNestedStack";
 import { MainAPINestedStack } from "./b.MainAPINestedStack";
-import { CognitoConfig } from "../../constructs/APIGatewayWithCognitoUserPoolConstruct";
+import { CognitoConfig } from "@constructs/APIGatewayWithCognitoUserPoolConstruct";
 
 export interface PrimaryResourcesStackProps extends cdk.StackProps {
   appName: string;

@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { NetworkingConstruct } from "../../constructs/NetworkingConstruct";
-import { OIDCRoleConstruct } from "../../constructs/OIDCRoleConstruct";
+import { NetworkingConstruct } from "@constructs/NetworkingConstruct";
+import { OIDCRoleConstruct } from "@constructs/OIDCRoleConstruct";
 
 export interface CoreResourcesStackProps extends cdk.StackProps {
   appName: string;

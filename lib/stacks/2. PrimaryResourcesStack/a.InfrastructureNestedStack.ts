@@ -44,7 +44,9 @@ export class InfrastructureNestedStack extends cdk.NestedStack {
         sortKey: { name: "SK", type: AttributeType.STRING },
         billing: dynamodb.Billing.onDemand(),
         contributorInsights: false,
-        pointInTimeRecovery: false,
+        pointInTimeRecoverySpecification: {
+          pointInTimeRecoveryEnabled: true,
+        },
         tableClass: dynamodb.TableClass.STANDARD,
         removalPolicy: cdk.RemovalPolicy.DESTROY,
         deletionProtection: false,

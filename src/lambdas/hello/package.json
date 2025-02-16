@@ -11,8 +11,5 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "dynamodb-toolbox": "^1.15.5",
-    "uuid": "^11.0.5",
-    "zod": "^3.24.1"
   }
 }

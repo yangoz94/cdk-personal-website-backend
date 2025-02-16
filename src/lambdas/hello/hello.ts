@@ -1,49 +1,71 @@
+import { OneTableInstance } from "@ddb/OneTable.js";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
 
-// Define a Zod schema for the expected shape of event.body
-const requestBodySchema = z.object({
-  name: z.string(),
-  age: z.number().optional(),
+const User = OneTableInstance.getModel("User");
+
+const createUserSchema = z.object({
+  username: z.string(),
+  email: z.string().email(),
+  profile_picture_s3_key: z.string(),
+  bio: z.string(),
+  role: z.string(),
 });
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log(
-    `Function invoked with the following: ${JSON.stringify(event)}`
-  );
-
-  let body;
-  try {
-    body = JSON.parse(event.body || "{}");
-  } catch (error) {
+  // 1. Check if request body exists
+  if (!event.body) {
+    console.error("Request body is missing");
     return {
       statusCode: 400,
-      body: JSON.stringify({ message: "Invalid JSON format in request body." }),
+      body: JSON.stringify({ message: "Request body is missing" }),
     };
   }
 
-  // Validate the parsed body with Zod schema
-  const parseResult = requestBodySchema.safeParse(body);
-  if (!parseResult.success) {
+  let parsedBody: unknown;
+  try {
+    // 2. Parse the JSON string into an object
+    parsedBody = JSON.parse(event.body);
+  } catch (parseError) {
+    console.error("Invalid JSON in request body", parseError);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: "Invalid JSON format in request body" }),
+    };
+  }
+
+  // 3. Validate data using Zod
+  const result = createUserSchema.safeParse(parsedBody);
+  if (!result.success) {
+    console.error("Validation error", result.error);
     return {
       statusCode: 400,
       body: JSON.stringify({
-        message: "Validation failed - check errors for more details.",
-        errors: parseResult.error.errors,
+        message: "Validation failed",
+        errors: result.error.errors,
       }),
     };
   }
+  const validatedData = result.data;
 
-  // Use the validated data if needed
-  const { name, age } = parseResult.data;
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: `Hello, ${name}!`,
-      ...(age ? { age } : {}),
-    }),
-  };
+  try {
+    // 4. Create the user using OneTable
+    const dbResult = await User.create(validatedData);
+    console.info("User  created successfully", dbResult);
+    return {
+      statusCode: 201,
+      body: JSON.stringify({
+        message: "Success - User created successfully!",
+        result: dbResult,
+      }),
+    };
+  } catch (dbError) {
+    console.error("Error creating user", dbError);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Internal server error" }),
+    };
+  }
 };

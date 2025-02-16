@@ -1,0 +1,60 @@
+export const schema = {
+  format: "onetable:1.1.0",
+  version: "0.0.1",
+  indexes: {
+    primary: { hash: "PK", sort: "SK" },
+  },
+  models: {
+    User: {
+      PK: { type: String, value: "USER#${user_id}", required: true },
+      SK: { type: String, value: "PROFILE#${user_id}", required: true },
+      user_id: {
+        type: String,
+        generate: "ulid",
+        validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i,
+      },
+      username: { type: String, required: true },
+      email: { type: String, required: true },
+      profile_picture_s3_key: { type: String, required: true },
+      bio: { type: String, required: true },
+      role: { type: String, required: true, default: "user" },
+    },
+    Blog: {
+      PK: { type: String, value: "BLOG#${blog_id}", required: true },
+      SK: { type: String, value: "METADATA#${blog_id}", required: true },
+      blog_id: {
+        type: String,
+        generate: "ulid",
+        validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i,
+      },
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      tags: { type: Array, default: [] },
+      category: { type: String, required: true },
+      subcategory: { type: String, required: true },
+      content_s3_key: { type: String, required: true },
+      author: { type: String, required: true },
+    },
+    Project: {
+      PK: { type: String, value: "PROJECT#${project_id}", required: true },
+      SK: { type: String, value: "METADATA#${project_id}", required: true },
+      project_id: {
+        type: String,
+        generate: "ulid",
+        validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i,
+      },
+      name: { type: String, required: true },
+      description: { type: String, required: true },
+      tags: { type: Array, default: [] },
+      tech_stack: { type: Array, default: [] },
+      deployed_link: { type: String, required: true },
+      repository_link: { type: String, required: true },
+      images_s3_keys: { type: Array, required: true },
+      author: { type: String, required: true },
+    },
+  },
+  params: {
+    timestamps: true,
+    separator: "#",
+  },
+};

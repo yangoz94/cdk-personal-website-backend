@@ -4,11 +4,13 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import {
   APIGatewayWithCognitoUserPoolConstruct,
   CognitoConfig,
-} from "../../constructs/APIGatewayWithCognitoUserPoolConstruct";
-import { SynchronousLambdaConstruct } from "../../constructs/SynchronousLambdaConstruct";
-import { S3CloudFrontConstruct } from "../../constructs/S3CloudfrontConstruct";
+} from "@constructs/APIGatewayWithCognitoUserPoolConstruct";
+import { SynchronousLambdaConstruct } from "@constructs/SynchronousLambdaConstruct";
+import { S3CloudFrontConstruct } from "@constructs/S3CloudfrontConstruct";
 import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
-import path = require("path");
+import * as path from "path";
+import { SharedLayerConstruct } from "@constructs/SharedLayerConstruct";
+import { LayerVersion } from "aws-cdk-lib/aws-lambda";
 
 export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   appName: string;
@@ -41,6 +43,7 @@ export enum APIMethodsEnum {
 export class MainAPINestedStack extends cdk.NestedStack {
   public readonly apiGateway: APIGatewayWithCognitoUserPoolConstruct;
   public readonly s3BucketWithCDN: S3CloudFrontConstruct;
+  public readonly sharedLayer: LayerVersion;
   public readonly helloFunction: SynchronousLambdaConstruct;
   public readonly allRoutes: APIRouteDefinition[] = [];
 
@@ -73,6 +76,11 @@ export class MainAPINestedStack extends cdk.NestedStack {
       }
     );
 
+    /* Create Shared Layer */
+    this.sharedLayer = new SharedLayerConstruct(this, "MySharedLayer", {
+      layerName: "MyLayer",
+    }).layer;
+
     /* Instantiate Hello Lambda function */
     this.helloFunction = new SynchronousLambdaConstruct(
       this,
@@ -85,7 +93,8 @@ export class MainAPINestedStack extends cdk.NestedStack {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }),
         permissions: ["dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem"],
-        nodeModules: ["uuid", "dynamodb-toolbox", "zod"],
+        layers: [this.sharedLayer],
+        nodeModules: [],
         externalModules: ["@aws-sdk/*", "aws-lambda"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
         entry: path.join(__dirname, "../../../src/lambdas/hello/hello.ts"),

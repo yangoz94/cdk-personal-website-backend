@@ -141,8 +141,11 @@ export class S3CloudFrontConstruct extends Construct {
         domainNames: [`${props.cdnSubDomain}.${props.domainName}`],
         certificate: this.certificate,
         defaultBehavior: {
-          origin: new origins.S3Origin(this.bucket, {
-            originPath: "/",
+          origin: new origins.OriginGroup({
+            primaryOrigin: origins.S3BucketOrigin.withOriginAccessControl(
+              this.bucket
+            ),
+            fallbackOrigin: new origins.HttpOrigin(`www.${props.domainName}`),
           }),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -150,9 +153,9 @@ export class S3CloudFrontConstruct extends Construct {
           responseHeadersPolicy:
             cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
         },
-        enableLogging: true, 
-        logBucket: this.bucket, 
-        logFilePrefix: "logs/cloudfront/", 
+        enableLogging: true,
+        logBucket: this.bucket,
+        logFilePrefix: "logs/cloudfront/",
       }
     );
 

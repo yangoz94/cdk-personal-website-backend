@@ -49,6 +49,11 @@ export interface SynchronousLambdaConstructProps {
   vpcEndpoints?: (ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[];
 
   /**
+   * Lambda layers to include in the Lambda function (optional).
+   */
+  layers?: lambda.ILayerVersion[];
+
+  /**
    * Node modules to bundle with the Lambda function (optional).
    */
   nodeModules?: string[];
@@ -117,7 +122,11 @@ export class SynchronousLambdaConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       depsLockFilePath: depsLockFilePath,
+      memorySize: 512,
       entry: props.entry,
+      tracing: lambda.Tracing.ACTIVE,
+      recursiveLoop: lambda.RecursiveLoop.TERMINATE,
+      loggingFormat: lambda.LoggingFormat.TEXT,
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
       environment: props.envVariables || undefined,
@@ -129,6 +138,12 @@ export class SynchronousLambdaConstruct extends Construct {
       },
       description: `Lambda function for ${props.lambdaName}`,
     });
+
+    if (props.layers) {
+      props.layers.forEach((layer) => {
+        this.lambdaFunction.addLayers(layer);
+      });
+    }
 
     if (props.permissions) {
       this.addPermissions(props.permissions);
