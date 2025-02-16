@@ -1,8 +1,6 @@
-import { OneTableInstance } from "@ddb/OneTable.js";
+import { UserModel } from "@ddb/schema.js";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
-
-const User = OneTableInstance.getModel("User");
 
 const createUserSchema = z.object({
   username: z.string(),
@@ -43,7 +41,7 @@ export const handler = async (
     return {
       statusCode: 400,
       body: JSON.stringify({
-        message: "Validation failed",
+        message: "Validation  failed",
         errors: result.error.errors,
       }),
     };
@@ -52,7 +50,7 @@ export const handler = async (
 
   try {
     // 4. Create the user using OneTable
-    const dbResult = await User.create(validatedData);
+    const dbResult = await UserModel.create(validatedData);
     console.info("User  created successfully", dbResult);
     return {
       statusCode: 201,

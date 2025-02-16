@@ -1,7 +1,7 @@
 import { Table } from "dynamodb-onetable";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { schema } from "./schema.js";
+import { Schema } from "./schema.js";
 
 const dynamoDBClient = new DynamoDBClient({
   region: process.env.AWS_REGION || "us-east-1",
@@ -11,10 +11,10 @@ const documentClient = DynamoDBDocumentClient.from(dynamoDBClient, {
 });
 
 // Create the table instance using the unified schema
-const OneTableInstance = new Table({
+const DDBInstance = new Table({
   name: `${process.env.APP_NAME}-table`,
   client: documentClient,
-  schema: schema,
+  schema: Schema,
   partial: true,
-})
-export { OneTableInstance };
+});
+export { DDBInstance };
