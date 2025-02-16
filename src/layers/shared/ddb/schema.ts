@@ -74,20 +74,8 @@ export const Schema = {
   },
 };
 
-/* Export User type and model */
+/* Type definitions */
 export type UserType = Entity<typeof Schema.models.User>;
-export const UserModel = DDBInstance.getModel<UserType>(
-  "User"
-) as Model<UserType>;
-
-/* Export Project type and model */
 export type ProjectType = Entity<typeof Schema.models.Project>;
-export const ProjectModel = DDBInstance.getModel<ProjectType>(
-  "Project"
-) as Model<ProjectType>;
-
-/* Export Blog type and model */
 export type BlogType = Entity<typeof Schema.models.Blog>;
-export const BlogModel = DDBInstance.getModel<BlogType>(
-  "Blog"
-) as Model<BlogType>;
+

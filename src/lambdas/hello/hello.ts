@@ -1,6 +1,8 @@
-import { UserModel } from "@ddb/schema.js";
+import { DDBInstance } from "@ddb/ddb-instance.js";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
+
+const UserModel = DDBInstance.getModel("User");
 
 const createUserSchema = z.object({
   username: z.string(),

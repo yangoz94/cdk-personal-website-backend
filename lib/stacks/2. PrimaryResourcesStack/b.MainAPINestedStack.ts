@@ -78,7 +78,7 @@ export class MainAPINestedStack extends cdk.NestedStack {
 
     /* Create Shared Layer */
     this.sharedLayer = new SharedLayerConstruct(this, "MySharedLayer", {
-      layerName: "MyLayer",
+      layerName: `${props.appName}-shared-layer`,
     }).layer;
 
     /* Instantiate Hello Lambda function */
