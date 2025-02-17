@@ -1,17 +1,17 @@
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 
-export interface SharedLayerConstructProps {
+export interface CommonLayerConstructProps {
   layerName: string;
 }
 
-export class SharedLayerConstruct extends Construct {
+export class CommonLayerConstruct extends Construct {
   public readonly layer: lambda.LayerVersion;
 
-  constructor(scope: Construct, id: string, props: SharedLayerConstructProps) {
+  constructor(scope: Construct, id: string, props: CommonLayerConstructProps) {
     super(scope, id);
 
-    this.layer = new lambda.LayerVersion(this, "SharedLayer", {
+    this.layer = new lambda.LayerVersion(this, "CommonLayer", {
       layerVersionName: props.layerName,
       compatibleArchitectures: [lambda.Architecture.ARM_64],
       code: lambda.Code.fromAsset("src/layers/shared", {

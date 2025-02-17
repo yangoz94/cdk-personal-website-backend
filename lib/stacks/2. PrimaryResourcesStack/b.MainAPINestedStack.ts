@@ -9,7 +9,7 @@ import { SynchronousLambdaConstruct } from "@constructs/SynchronousLambdaConstru
 import { S3CloudFrontConstruct } from "@constructs/S3CloudfrontConstruct";
 import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
 import * as path from "path";
-import { SharedLayerConstruct } from "@constructs/SharedLayerConstruct";
+import { CommonLayerConstruct } from "@constructs/CommonLayerConstruct";
 import { LayerVersion } from "aws-cdk-lib/aws-lambda";
 
 export interface MainAPINestedStackProps extends cdk.NestedStackProps {
@@ -43,7 +43,7 @@ export enum APIMethodsEnum {
 export class MainAPINestedStack extends cdk.NestedStack {
   public readonly apiGateway: APIGatewayWithCognitoUserPoolConstruct;
   public readonly s3BucketWithCDN: S3CloudFrontConstruct;
-  public readonly sharedLayer: LayerVersion;
+  public readonly commonLayer: LayerVersion;
   public readonly helloFunction: SynchronousLambdaConstruct;
   public readonly allRoutes: APIRouteDefinition[] = [];
 
@@ -77,9 +77,13 @@ export class MainAPINestedStack extends cdk.NestedStack {
     );
 
     /* Create Shared Layer */
-    this.sharedLayer = new SharedLayerConstruct(this, "MySharedLayer", {
-      layerName: `${props.appName}-shared-layer`,
-    }).layer;
+    this.commonLayer = new CommonLayerConstruct(
+      this,
+      `${props.appName}-common-layer`,
+      {
+        layerName: `${props.appName}-common-layer`,
+      }
+    ).layer;
 
     /* Instantiate Hello Lambda function */
     this.helloFunction = new SynchronousLambdaConstruct(
@@ -90,10 +94,10 @@ export class MainAPINestedStack extends cdk.NestedStack {
         lambdaName: `${props.appName}-hello-x`,
         vpc: props.vpc,
         vpcSubnets: props.vpc.selectSubnets({
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
         }),
         permissions: ["dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem"],
-        layers: [this.sharedLayer],
+        layers: [this.commonLayer],
         nodeModules: [],
         externalModules: ["@aws-sdk/*", "aws-lambda"],
         vpcEndpoints: [props.dynamoDBVpcEndpoint],
