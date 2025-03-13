@@ -1,5 +1,5 @@
 {
-  "name": "hello",
+  "name": "create-project-handler",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -9,7 +9,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
-  "dependencies": {
-  }
+  "description": ""
 }

@@ -14,11 +14,7 @@ export class InfrastructureNestedStack extends cdk.NestedStack {
   public readonly dynamoDBVpcEndpoint: ec2.GatewayVpcEndpoint;
   public readonly s3VpcEndpoint: ec2.GatewayVpcEndpoint;
 
-  constructor(
-    scope: Construct,
-    id: string,
-    props: InfrastructureNestedStackProps
-  ) {
+  constructor(scope: Construct, id: string, props: InfrastructureNestedStackProps) {
     super(scope, id, props);
 
     /* VPC Lookup */
@@ -27,39 +23,29 @@ export class InfrastructureNestedStack extends cdk.NestedStack {
     });
 
     /* Create DynamoDB VPC Endpoint */
-    this.dynamoDBVpcEndpoint = this.vpc.addGatewayEndpoint(
-      `${props.appName}-dynamodb-vpc-endpoint`,
-      {
-        service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
-      }
-    );
+    this.dynamoDBVpcEndpoint = this.vpc.addGatewayEndpoint(`${props.appName}-dynamodb-vpc-endpoint`, {
+      service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
+    });
 
     /* Instantiate the DynamoDB table */
-    this.dynamoDBTable = new dynamodb.TableV2(
-      this,
-      `${props.appName}-ddb-table`,
-      {
-        tableName: `${props.appName}-table`,
-        partitionKey: { name: "PK", type: AttributeType.STRING },
-        sortKey: { name: "SK", type: AttributeType.STRING },
-        billing: dynamodb.Billing.onDemand(),
-        contributorInsights: false,
-        pointInTimeRecoverySpecification: {
-          pointInTimeRecoveryEnabled: true,
-        },
-        tableClass: dynamodb.TableClass.STANDARD,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        deletionProtection: false,
-        timeToLiveAttribute: "ttl",
-      }
-    );
+    this.dynamoDBTable = new dynamodb.TableV2(this, `${props.appName}-ddb-table`, {
+      tableName: `${props.appName}-table`,
+      partitionKey: { name: "PK", type: AttributeType.STRING },
+      sortKey: { name: "SK", type: AttributeType.STRING },
+      billing: dynamodb.Billing.onDemand(),
+      contributorInsights: false,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true,
+      },
+      tableClass: dynamodb.TableClass.STANDARD,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      deletionProtection: false,
+      timeToLiveAttribute: "ttl",
+    });
 
     /* Create S3 VPC Endpoint */
-    this.s3VpcEndpoint = this.vpc.addGatewayEndpoint(
-      `${props.appName}-s3-vpc-endpoint`,
-      {
-        service: ec2.GatewayVpcEndpointAwsService.S3,
-      }
-    );
+    this.s3VpcEndpoint = this.vpc.addGatewayEndpoint(`${props.appName}-s3-vpc-endpoint`, {
+      service: ec2.GatewayVpcEndpointAwsService.S3,
+    });
   }
 }

@@ -20,32 +20,24 @@ export class PrimaryResourcesStack extends cdk.Stack {
     super(scope, id, props);
 
     /* Instantiate Infrastructure Nested Stack */
-    const infrastructureStack = new InfrastructureNestedStack(
-      this,
-      `${props.appName}-infra-stack`,
-      {
-        appName: props.appName,
-      }
-    );
+    const infrastructureStack = new InfrastructureNestedStack(this, `${props.appName}-infra-stack`, {
+      appName: props.appName,
+    });
 
     /* Instantiate API Nested Stack AFTER the infrastructure stack */
-    const apiStack = new MainAPINestedStack(
-      this,
-      `${props.appName}-api-stack`,
-      {
-        appName: props.appName,
-        apiSubDomain: props.apiSubDomain,
-        domain: props.domain,
-        authSubdomain: props.authSubdomain,
-        apiVersion: props.apiVersion,
-        cdnSubDomain: props.cdnSubDomain,
-        hostedZoneId: props.hostedZoneId,
-        vpc: infrastructureStack.vpc,
-        dynamoDBVpcEndpoint: infrastructureStack.dynamoDBVpcEndpoint,
-        cognitoConfig: props.cognitoConfig,
-        dynamoDBTable: infrastructureStack.dynamoDBTable,
-      }
-    );
+    const apiStack = new MainAPINestedStack(this, `${props.appName}-api-stack`, {
+      appName: props.appName,
+      apiSubDomain: props.apiSubDomain,
+      domain: props.domain,
+      authSubdomain: props.authSubdomain,
+      apiVersion: props.apiVersion,
+      cdnSubDomain: props.cdnSubDomain,
+      hostedZoneId: props.hostedZoneId,
+      vpc: infrastructureStack.vpc,
+      dynamoDBVpcEndpoint: infrastructureStack.dynamoDBVpcEndpoint,
+      cognitoConfig: props.cognitoConfig,
+      dynamoDBTable: infrastructureStack.dynamoDBTable,
+    });
 
     /* Add dependency to ensure the infrastructure stack is created first */
     apiStack.addDependency(infrastructureStack);

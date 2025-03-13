@@ -76,11 +76,7 @@ export class S3CloudFrontConstruct extends Construct {
     super(scope, id);
 
     /* Lookup the hosted zone for the domain */
-    const hostedZone = route53.HostedZone.fromHostedZoneId(
-      this,
-      `${props.appName}-hosted-zone`,
-      props.hostedZoneId
-    );
+    const hostedZone = route53.HostedZone.fromHostedZoneId(this, `${props.appName}-hosted-zone`, props.hostedZoneId);
 
     /* Create an S3 bucket with a `public` folder for CDN access and a `logs` folder for CloudFront logs */
     this.bucket = new s3.Bucket(this, `${props.appName}-bucket`, {
@@ -122,66 +118,45 @@ export class S3CloudFrontConstruct extends Construct {
     );
 
     /* Create a certificate for the CloudFront distribution */
-    this.certificate = new certificatemanager.Certificate(
-      this,
-      `${props.appName}-certificate`,
-      {
-        certificateName: `${props.appName}-cdn-certificate`,
-        domainName: `${props.cdnSubDomain}.${props.domainName}`,
-        validation:
-          certificatemanager.CertificateValidation.fromDns(hostedZone),
-      }
-    );
+    this.certificate = new certificatemanager.Certificate(this, `${props.appName}-certificate`, {
+      certificateName: `${props.appName}-cdn-certificate`,
+      domainName: `${props.cdnSubDomain}.${props.domainName}`,
+      validation: certificatemanager.CertificateValidation.fromDns(hostedZone),
+    });
 
     /* Create a CloudFront distribution restricted to the `public` folder */
-    this.distribution = new cloudfront.Distribution(
-      this,
-      `${props.appName}-distribution`,
-      {
-        domainNames: [`${props.cdnSubDomain}.${props.domainName}`],
-        certificate: this.certificate,
-        defaultBehavior: {
-          origin: new origins.OriginGroup({
-            primaryOrigin: origins.S3BucketOrigin.withOriginAccessControl(
-              this.bucket
-            ),
-            fallbackOrigin: new origins.HttpOrigin(`www.${props.domainName}`),
-          }),
-          viewerProtocolPolicy:
-            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-          responseHeadersPolicy:
-            cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
-        },
-        enableLogging: true,
-        logBucket: this.bucket,
-        logFilePrefix: "logs/cloudfront/",
-      }
-    );
+    this.distribution = new cloudfront.Distribution(this, `${props.appName}-distribution`, {
+      domainNames: [`${props.cdnSubDomain}.${props.domainName}`],
+      certificate: this.certificate,
+      defaultBehavior: {
+        origin: new origins.OriginGroup({
+          primaryOrigin: origins.S3BucketOrigin.withOriginAccessControl(this.bucket),
+          fallbackOrigin: new origins.HttpOrigin(`www.${props.domainName}`),
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
+      },
+      enableLogging: true,
+      logBucket: this.bucket,
+      logFilePrefix: "logs/cloudfront/",
+    });
 
     /* Deploy a placeholder to ensure the `public` folder exists in S3 */
     new s3deploy.BucketDeployment(this, `${props.appName}-public-folder-init`, {
       destinationBucket: this.bucket,
       destinationKeyPrefix: "public/",
-      sources: [
-        s3deploy.Source.data("placeholder.txt", "This is a placeholder"),
-      ],
+      sources: [s3deploy.Source.data("placeholder.txt", "This is a placeholder")],
     });
 
     /* Create an Alias A Record in Route 53 for the CloudFront distribution */
     new route53.ARecord(this, `${props.appName}-alias-record`, {
-      zone: route53.HostedZone.fromHostedZoneAttributes(
-        this,
-        `${props.appName}-hosted-zone-attributes`,
-        {
-          hostedZoneId: props.hostedZoneId,
-          zoneName: props.domainName,
-        }
-      ),
+      zone: route53.HostedZone.fromHostedZoneAttributes(this, `${props.appName}-hosted-zone-attributes`, {
+        hostedZoneId: props.hostedZoneId,
+        zoneName: props.domainName,
+      }),
       recordName: `${props.cdnSubDomain}.${props.domainName}`,
-      target: route53.RecordTarget.fromAlias(
-        new targets.CloudFrontTarget(this.distribution)
-      ),
+      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
     });
 
     /* Store the CloudFront distribution URL in SSM Parameter Store */

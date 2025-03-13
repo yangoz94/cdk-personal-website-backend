@@ -7,9 +7,9 @@ import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
 
 /**
- * Properties for configuring the SynchronousLambdaConstruct.
+ * Properties for configuring the LambdaConstruct.
  */
-export interface SynchronousLambdaConstructProps {
+export interface LambdaConstructProps {
   /**
    * The application name used as a prefix in resource names.
    */
@@ -89,7 +89,7 @@ export interface SynchronousLambdaConstructProps {
  *   isProtected: true, // Protect this route
  * });
  */
-export class SynchronousLambdaConstruct extends Construct {
+export class LambdaConstruct extends Construct {
   /**
    * The created Lambda function resource.
    */
@@ -102,17 +102,10 @@ export class SynchronousLambdaConstruct extends Construct {
    * @param {string} id - The unique identifier for this construct.
    * @param {SynchronousLambdaConstructProps} props - Properties for configuring the Lambda function and API Gateway integration.
    */
-  constructor(
-    scope: Construct,
-    id: string,
-    props: SynchronousLambdaConstructProps
-  ) {
+  constructor(scope: Construct, id: string, props: LambdaConstructProps) {
     super(scope, id);
 
-    const depsLockFilePath = props.entry.replace(
-      /\/[^/]+\.ts$/,
-      "/package-lock.json"
-    );
+    const depsLockFilePath = props.entry.replace(/\/[^/]+\.ts$/, "/package-lock.json");
 
     // Create the Lambda function with configurable entry file and settings
     this.lambdaFunction = new nodejs.NodejsFunction(this, props.lambdaName, {
@@ -178,9 +171,7 @@ export class SynchronousLambdaConstruct extends Construct {
    *
    * @param {(ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[]} vpcEndpoints - Array of VPC endpoints to allow connections.
    */
-  private configureVpcEndpoints(
-    vpcEndpoints: (ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[]
-  ) {
+  private configureVpcEndpoints(vpcEndpoints: (ec2.InterfaceVpcEndpoint | ec2.GatewayVpcEndpoint)[]) {
     vpcEndpoints.forEach((endpoint) => {
       if (endpoint instanceof ec2.InterfaceVpcEndpoint) {
         this.lambdaFunction.connections.allowTo(

@@ -38,8 +38,7 @@ export interface CognitoConfig {
 /**
  * Properties for configuring the APIGatewayConstruct with Cognito authentication.
  */
-export interface APIGatewayWithCognitoUserPoolConstructProps
-  extends apigw.RestApiProps {
+export interface APIGatewayWithCognitoUserPoolConstructProps extends apigw.RestApiProps {
   appName: string;
   apiSubDomain: string;
   authSubdomain: string;
@@ -59,11 +58,7 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
   /**
    * Constructs a new instance of the APIGatewayConstruct.
    */
-  constructor(
-    scope: Construct,
-    id: string,
-    props: APIGatewayWithCognitoUserPoolConstructProps
-  ) {
+  constructor(scope: Construct, id: string, props: APIGatewayWithCognitoUserPoolConstructProps) {
     super(scope, id);
 
     /* Cognito User Pool setup */
@@ -73,9 +68,7 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       removalPolicy: RemovalPolicy.DESTROY,
       selfSignUpEnabled: props.cognitoConfig?.selfSignUpEnabled || false,
       signInAliases: { username: true, email: true },
-      autoVerify: props.cognitoConfig?.userVerification
-        ? { email: true }
-        : undefined,
+      autoVerify: props.cognitoConfig?.userVerification ? { email: true } : undefined,
       userVerification: props.cognitoConfig?.userVerification,
       passwordPolicy: props.cognitoConfig?.passwordPolicy || {
         minLength: 8,
@@ -93,21 +86,17 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
     });
 
     /* Cognito User Pool Client */
-    const userPoolClient = new cognito.UserPoolClient(
-      this,
-      `${props.appName}-userpool-client`,
-      {
-        userPool,
-        authFlows: { userPassword: true, userSrp: true },
-        oAuth: {
-          callbackUrls: props.cognitoConfig?.callbackUrls || [],
-          logoutUrls: props.cognitoConfig?.logoutUrls || [],
-        },
-        idTokenValidity: Duration.minutes(15),
-        accessTokenValidity: Duration.minutes(15),
-        refreshTokenValidity: Duration.days(1),
-      }
-    );
+    const userPoolClient = new cognito.UserPoolClient(this, `${props.appName}-userpool-client`, {
+      userPool,
+      authFlows: { userPassword: true, userSrp: true },
+      oAuth: {
+        callbackUrls: props.cognitoConfig?.callbackUrls || [],
+        logoutUrls: props.cognitoConfig?.logoutUrls || [],
+      },
+      idTokenValidity: Duration.minutes(15),
+      accessTokenValidity: Duration.minutes(15),
+      refreshTokenValidity: Duration.days(1),
+    });
 
     /* Store User Pool Client ID in SSM (required for registering new users / getting the idtokens of existing users) */
     new ssm.StringParameter(this, `${props.appName}-userpool-client-id`, {
@@ -126,22 +115,14 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
     }
 
     /* API Gateway Cognito Authorizer */
-    this.authorizer = new apigw.CognitoUserPoolsAuthorizer(
-      this,
-      `${props.appName}-cognito-authorizer`,
-      {
-        cognitoUserPools: [userPool],
-      }
-    );
+    this.authorizer = new apigw.CognitoUserPoolsAuthorizer(this, `${props.appName}-cognito-authorizer`, {
+      cognitoUserPools: [userPool],
+    });
 
     /* Access Logging Setup */
-    const accessLogGroup = new logs.LogGroup(
-      this,
-      `${props.appName}-access-log-group`,
-      {
-        removalPolicy: RemovalPolicy.DESTROY,
-      }
-    );
+    const accessLogGroup = new logs.LogGroup(this, `${props.appName}-access-log-group`, {
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
 
     /* API Gateway Setup */
     this.restApi = new apigw.RestApi(this, `${props.appName}-api-gw`, {
@@ -150,13 +131,7 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       defaultCorsPreflightOptions: {
         allowOrigins: apigw.Cors.ALL_ORIGINS,
         allowMethods: apigw.Cors.ALL_METHODS,
-        allowHeaders: [
-          "Content-Type",
-          "X-Amz-Date",
-          "Authorization",
-          "X-Api-Key",
-          "X-Amz-Security-Token",
-        ],
+        allowHeaders: ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"],
       },
       deployOptions: {
         loggingLevel: apigw.MethodLoggingLevel.INFO,
@@ -171,89 +146,55 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
     });
 
     /* Custom Domain Configuration */
-    const hostedZone = route53.HostedZone.fromHostedZoneId(
-      this,
-      `${props.appName}-hosted-zone`,
-      props.hostedZoneId
-    );
+    const hostedZone = route53.HostedZone.fromHostedZoneId(this, `${props.appName}-hosted-zone`, props.hostedZoneId);
 
-    const certificate = new certificatemanager.Certificate(
-      this,
-      `${props.appName}-api-certificate`,
-      {
-        domainName: `${props.apiSubDomain}.${props.domain}`,
-        validation:
-          certificatemanager.CertificateValidation.fromDns(hostedZone),
-      }
-    );
+    const certificate = new certificatemanager.Certificate(this, `${props.appName}-api-certificate`, {
+      domainName: `${props.apiSubDomain}.${props.domain}`,
+      validation: certificatemanager.CertificateValidation.fromDns(hostedZone),
+    });
 
-    const domainName = new apigw.DomainName(
-      this,
-      `${props.appName}-domain-name`,
-      {
-        domainName: `${props.apiSubDomain}.${props.domain}`,
-        certificate,
-        endpointType: apigw.EndpointType.EDGE,
-        securityPolicy: apigw.SecurityPolicy.TLS_1_2,
-        mapping: this.restApi,
-      }
-    );
+    const domainName = new apigw.DomainName(this, `${props.appName}-domain-name`, {
+      domainName: `${props.apiSubDomain}.${props.domain}`,
+      certificate,
+      endpointType: apigw.EndpointType.EDGE,
+      securityPolicy: apigw.SecurityPolicy.TLS_1_2,
+      mapping: this.restApi,
+    });
 
     /* Route 53 Alias Record */
     new route53.ARecord(this, `${props.appName}-alias-record`, {
-      zone: route53.HostedZone.fromHostedZoneAttributes(
-        this,
-        `${props.appName}-hosted-zone-attributes-for-api`,
-        {
-          hostedZoneId: props.hostedZoneId,
-          zoneName: props.domain,
-        }
-      ),
+      zone: route53.HostedZone.fromHostedZoneAttributes(this, `${props.appName}-hosted-zone-attributes-for-api`, {
+        hostedZoneId: props.hostedZoneId,
+        zoneName: props.domain,
+      }),
       recordName: `${props.apiSubDomain}.${props.domain}`,
-      target: route53.RecordTarget.fromAlias(
-        new targets.ApiGatewayDomain(domainName)
-      ),
+      target: route53.RecordTarget.fromAlias(new targets.ApiGatewayDomain(domainName)),
       ttl: Duration.minutes(5),
     });
 
     /* Hosted UI Custom Domain */
-    const hostedUICertificate = new certificatemanager.Certificate(
-      this,
-      `${props.appName}-auth-certificate`,
-      {
-        domainName: `${props.authSubdomain}.${props.domain}`,
-        certificateName: `${props.appName}-auth-certificate`,
-        validation:
-          certificatemanager.CertificateValidation.fromDns(hostedZone),
-      }
-    );
+    const hostedUICertificate = new certificatemanager.Certificate(this, `${props.appName}-auth-certificate`, {
+      domainName: `${props.authSubdomain}.${props.domain}`,
+      certificateName: `${props.appName}-auth-certificate`,
+      validation: certificatemanager.CertificateValidation.fromDns(hostedZone),
+    });
 
-    const userPoolDomain = new cognito.UserPoolDomain(
-      this,
-      `${props.appName}-userpool-domain`,
-      {
-        userPool,
-        customDomain: {
-          domainName: `${props.authSubdomain}.${props.domain}`,
-          certificate: hostedUICertificate,
-        },
-      }
-    );
+    const userPoolDomain = new cognito.UserPoolDomain(this, `${props.appName}-userpool-domain`, {
+      userPool,
+      customDomain: {
+        domainName: `${props.authSubdomain}.${props.domain}`,
+        certificate: hostedUICertificate,
+      },
+    });
 
     /* Route 53 Alias Record for Hosted UI */
     new route53.ARecord(this, `${props.appName}-auth-alias-record`, {
-      zone: route53.HostedZone.fromHostedZoneAttributes(
-        this,
-        `${props.appName}-hosted-zone-attributes-for-auth`,
-        {
-          hostedZoneId: props.hostedZoneId,
-          zoneName: props.domain,
-        }
-      ),
+      zone: route53.HostedZone.fromHostedZoneAttributes(this, `${props.appName}-hosted-zone-attributes-for-auth`, {
+        hostedZoneId: props.hostedZoneId,
+        zoneName: props.domain,
+      }),
       recordName: `${props.authSubdomain}.${props.domain}`,
-      target: route53.RecordTarget.fromAlias(
-        new targets.UserPoolDomainTarget(userPoolDomain)
-      ),
+      target: route53.RecordTarget.fromAlias(new targets.UserPoolDomainTarget(userPoolDomain)),
       ttl: Duration.minutes(5),
     });
   }
@@ -286,15 +227,9 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       resource = resource.getResource(part) ?? resource.addResource(part);
     });
 
-    resource.addMethod(
-      httpMethod,
-      new apigw.LambdaIntegration(lambdaFunction),
-      {
-        authorizer: isProtected ? this.authorizer : undefined,
-        authorizationType: isProtected
-          ? apigw.AuthorizationType.COGNITO
-          : apigw.AuthorizationType.NONE,
-      }
-    );
+    resource.addMethod(httpMethod, new apigw.LambdaIntegration(lambdaFunction), {
+      authorizer: isProtected ? this.authorizer : undefined,
+      authorizationType: isProtected ? apigw.AuthorizationType.COGNITO : apigw.AuthorizationType.NONE,
+    });
   }
 }

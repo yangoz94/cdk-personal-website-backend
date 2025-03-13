@@ -13,22 +13,14 @@ export class CoreResourcesStack extends cdk.Stack {
     super(scope, id, props);
 
     /* Create core resources (OIDC provider, roles, etc.) */
-    const oidcAndExecutionRoles = new OIDCRoleConstruct(
-      this,
-      `${props.appName}-oidc-and-execution-roles-construct`,
-      {
-        appName: props.appName,
-        githubRepoName: props.githubRepoName,
-      }
-    );
+    const oidcAndExecutionRoles = new OIDCRoleConstruct(this, `${props.appName}-oidc-and-execution-roles-construct`, {
+      appName: props.appName,
+      githubRepoName: props.githubRepoName,
+    });
 
     /* Instantiate the VPC, public and private subnets, internet gateway, and route tables. */
-    const networkingResources = new NetworkingConstruct(
-      this,
-      `${props.appName}-networking-resources-construct`,
-      {
-        appName: props.appName,
-      }
-    );
+    const networkingResources = new NetworkingConstruct(this, `${props.appName}-networking-resources-construct`, {
+      appName: props.appName,
+    });
   }
 }

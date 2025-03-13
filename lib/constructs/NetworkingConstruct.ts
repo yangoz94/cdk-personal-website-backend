@@ -49,17 +49,17 @@ export class NetworkingConstruct extends Construct {
       subnetConfiguration: [
         {
           cidrMask: 24,
-          name: `${props.appName}-public-`, // Simplified name for public subnet
+          name: `${props.appName}-public-`,
           subnetType: ec2.SubnetType.PUBLIC,
         },
         {
           cidrMask: 24,
-          name: `${props.appName}-private-isolated-`, // Simplified name for isolated private subnet
+          name: `${props.appName}-private-isolated-`,
           subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
         },
         {
           cidrMask: 24,
-          name: `${props.appName}-private-egress-`, // Simplified name for private subnet with egress
+          name: `${props.appName}-private-egress-`,
           subnetType:
             ec2.SubnetType
               .PRIVATE_WITH_EGRESS /* no NAT Gateways - can use only vpc endpoints for internal communication */,

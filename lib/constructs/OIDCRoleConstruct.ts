@@ -45,22 +45,15 @@ export class OIDCRoleConstruct extends Construct {
      * GitHub Actions OIDC Role: Allows GitHub Actions in the specified repository
      * to assume roles required for deployments.
      */
-    const githubOidcRole = new iam.Role(
-      this,
-      `${props.appName}-github-oidc-role`,
-      {
-        assumedBy: new iam.WebIdentityPrincipal(
-          oidcProvider.openIdConnectProviderArn,
-          {
-            StringLike: {
-              "token.actions.githubusercontent.com:sub": `repo:${props.githubRepoName}:*`,
-            },
-          }
-        ),
-        description: `${props.appName} GitHub Actions OIDC Role`,
-        roleName: `${props.appName}-github-oidc-role`,
-      }
-    );
+    const githubOidcRole = new iam.Role(this, `${props.appName}-github-oidc-role`, {
+      assumedBy: new iam.WebIdentityPrincipal(oidcProvider.openIdConnectProviderArn, {
+        StringLike: {
+          "token.actions.githubusercontent.com:sub": `repo:${props.githubRepoName}:*`,
+        },
+      }),
+      description: `${props.appName} GitHub Actions OIDC Role`,
+      roleName: `${props.appName}-github-oidc-role`,
+    });
 
     /**
      * Additional policies for the GitHub OIDC Role to allow necessary AWS actions
@@ -72,11 +65,7 @@ export class OIDCRoleConstruct extends Construct {
         new iam.PolicyStatement({
           sid: "AllowCDKDeployments",
           actions: ["sts:AssumeRole"],
-          resources: [
-            `arn:aws:iam::${cdk.Stack.of(this).account}:role/cdk-${
-              props.appName
-            }-*`,
-          ],
+          resources: [`arn:aws:iam::${cdk.Stack.of(this).account}:role/cdk-${props.appName}-*`],
         }),
         new iam.PolicyStatement({
           sid: "CloudFormationActions",
@@ -92,9 +81,9 @@ export class OIDCRoleConstruct extends Construct {
           sid: "SSMGet",
           actions: ["ssm:GetParameter"],
           resources: [
-            `arn:aws:ssm:${cdk.Stack.of(this).region}:${
-              cdk.Stack.of(this).account
-            }:parameter/cdk-bootstrap/${props.appName}/version`,
+            `arn:aws:ssm:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:parameter/cdk-bootstrap/${
+              props.appName
+            }/version`,
           ],
         }),
         new iam.PolicyStatement({
@@ -109,12 +98,8 @@ export class OIDCRoleConstruct extends Construct {
             "schemas:GetCodeBindingSource",
           ],
           resources: [
-            `arn:aws:schemas:${cdk.Stack.of(this).region}:${
-              cdk.Stack.of(this).account
-            }:registry/*`,
-            `arn:aws:schemas:${cdk.Stack.of(this).region}:${
-              cdk.Stack.of(this).account
-            }:schema/*`,
+            `arn:aws:schemas:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:registry/*`,
+            `arn:aws:schemas:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:schema/*`,
           ],
         }),
       ],

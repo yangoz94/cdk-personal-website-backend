@@ -61,10 +61,9 @@ export const Schema = {
       description: { type: String, required: true },
       tags: { type: Array, default: [] },
       tech_stack: { type: Array, default: [] },
-      deployed_link: { type: String, required: true },
-      repository_link: { type: String, required: true },
+      live_url: { type: String, required: false },
+      github_url: { type: String, required: true },
       images_s3_keys: { type: Array, required: true },
-      author: { type: String, required: true },
     },
   },
   params: {
@@ -78,4 +77,3 @@ export const Schema = {
 export type UserType = Entity<typeof Schema.models.User>;
 export type ProjectType = Entity<typeof Schema.models.Project>;
 export type BlogType = Entity<typeof Schema.models.Blog>;
-
