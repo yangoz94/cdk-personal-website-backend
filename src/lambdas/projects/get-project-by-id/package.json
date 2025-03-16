@@ -1,5 +1,5 @@
 {
-  "name": "create-project.handler",
+  "name": "get-project-by-id.handler",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",

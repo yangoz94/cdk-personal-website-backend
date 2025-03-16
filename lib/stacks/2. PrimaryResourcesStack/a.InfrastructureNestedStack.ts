@@ -38,9 +38,16 @@ export class InfrastructureNestedStack extends cdk.NestedStack {
         pointInTimeRecoveryEnabled: true,
       },
       tableClass: dynamodb.TableClass.STANDARD,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
       deletionProtection: false,
       timeToLiveAttribute: "ttl",
+      globalSecondaryIndexes: [
+        {
+          indexName: "AllProjectsIndex",
+          partitionKey: { name: "APIPK", type: AttributeType.STRING },
+          sortKey: { name: "APISK", type: AttributeType.STRING },
+        },
+      ],
     });
 
     /* Create S3 VPC Endpoint */

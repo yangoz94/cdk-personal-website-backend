@@ -5,6 +5,59 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
+import { APIGatewayWithCognitoUserPoolConstruct } from "@constructs/APIGatewayWithCognitoUserPoolConstruct";
+
+/**
+ * Defines API Gateway integration details.
+ */
+export interface ApiGwIntegrationProps {
+  /**
+   * The API Gateway instance to attach this Lambda function to.
+   */
+  apiGateway: APIGatewayWithCognitoUserPoolConstruct;
+
+  /**
+   * The API route to be associated with the Lambda function.
+   */
+  route: string;
+
+  /**
+   * The HTTP method for the API route.
+   */
+  method: APIMethodsEnum;
+
+  /**
+   * Whether the API route should be protected by an API Gateway authorizer.
+   */
+  isProtected?: boolean;
+}
+
+/***
+ * Enum for API Gateway HTTP methods.
+ */
+export enum APIMethodsEnum {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+}
+
+/**
+ * Enum for DynamoDB permissions.
+ */
+export enum DynamoDBPermissions {
+  /* Read Operations */
+  QUERY = "dynamodb:Query",
+  SCAN = "dynamodb:Scan",
+  GET_ITEM = "dynamodb:GetItem",
+  BATCH_GET_ITEM = "dynamodb:BatchGetItem",
+
+  /* Write Operations */
+  PUT_ITEM = "dynamodb:PutItem", // Insert a new item
+  UPDATE_ITEM = "dynamodb:UpdateItem", // Modify an existing item
+  DELETE_ITEM = "dynamodb:DeleteItem", // Remove an item
+  BATCH_WRITE_ITEM = "dynamodb:BatchWriteItem", // Write multiple items at once
+}
 
 /**
  * Properties for configuring the LambdaConstruct.
@@ -29,10 +82,12 @@ export interface LambdaConstructProps {
    * The VPC subnets for the Lambda function.
    */
   vpcSubnets: ec2.SubnetSelection;
+
   /**
    * The directory path to the entry file for the Lambda function.
    */
   entry: string;
+
   /**
    * The timeout for the Lambda function (default: 30 seconds).
    */
@@ -41,7 +96,7 @@ export interface LambdaConstructProps {
   /**
    * Additional permissions required by the Lambda function (optional).
    */
-  permissions?: string[];
+  permissions?: DynamoDBPermissions[];
 
   /**
    * VPC endpoints that the Lambda function can access (optional).
@@ -64,29 +119,46 @@ export interface LambdaConstructProps {
   externalModules?: string[];
 
   /**
-   * Whether the route should be protected by an API Gateway authorizer.
-   */
-  isProtected?: boolean;
-
-  /**
    * Environment variables to pass to the Lambda function (optional).
    */
   envVariables?: { [key: string]: string };
+
+  /**
+   * Optional API Gateway integration settings.
+   */
+  apiGwIntegration?: ApiGwIntegrationProps;
 }
 
 /**
- * Creates a Lambda function integrated with an API Gateway resource,
- * with optional configuration for VPC, permissions, VPC endpoints, and route protection.
- 
+ * Creates a Lambda function with optional API Gateway integration.
+ *
+ * If `apiGwIntegration` is provided, the Lambda function will be automatically
+ * registered as an API Gateway route.
+ *
  * @example
- * const apiGatewayLambda = new SynchronousLambdaConstruct(this, 'MyLambdaFunction', {
+ * // Example: Using Lambda with API Gateway
+ * const lambdaWithApi = new LambdaConstruct(this, 'ApiLambda', {
  *   appName: 'myApp',
- *   lambdaName: 'myLambda',
+ *   lambdaName: 'myApiLambda',
  *   vpc: myVpc,
  *   vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE },
- *   apigw: myApiGateway,
- *   entryFile: 'index.ts',
- *   isProtected: true, // Protect this route
+ *   entry: 'index.ts',
+ *   apiGwIntegration: {
+ *     apiGateway: myApiGateway,
+ *     route: '/projects',
+ *     method: APIMethodsEnum.GET,
+ *     isProtected: true,
+ *   },
+ * });
+ *
+ * @example
+ * // Example: Using Lambda without API Gateway (e.g., for SQS/EventBridge)
+ * const lambdaWithoutApi = new LambdaConstruct(this, 'SqsLambda', {
+ *   appName: 'myApp',
+ *   lambdaName: 'mySqsLambda',
+ *   vpc: myVpc,
+ *   vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE },
+ *   entry: 'sqs-handler.ts',
  * });
  */
 export class LambdaConstruct extends Construct {
@@ -96,18 +168,18 @@ export class LambdaConstruct extends Construct {
   public readonly lambdaFunction: lambda.Function;
 
   /**
-   * Constructs a new instance of the SynchronousLambdaConstruct.
+   * Constructs a new instance of the LambdaConstruct with optional API Gateway integration.
    *
    * @param {Construct} scope - The parent construct, typically a CDK stack.
    * @param {string} id - The unique identifier for this construct.
-   * @param {SynchronousLambdaConstructProps} props - Properties for configuring the Lambda function and API Gateway integration.
+   * @param {LambdaConstructProps} props - Properties for configuring the Lambda function and API Gateway integration.
    */
   constructor(scope: Construct, id: string, props: LambdaConstructProps) {
     super(scope, id);
 
     const depsLockFilePath = props.entry.replace(/\/[^/]+\.ts$/, "/package-lock.json");
 
-    // Create the Lambda function with configurable entry file and settings
+    /* Create the Lambda function with configurable entry file and settings */
     this.lambdaFunction = new nodejs.NodejsFunction(this, props.lambdaName, {
       functionName: `${props.lambdaName}`,
       vpc: props.vpc,
@@ -118,8 +190,6 @@ export class LambdaConstruct extends Construct {
       memorySize: 512,
       entry: props.entry,
       tracing: lambda.Tracing.ACTIVE,
-      recursiveLoop: lambda.RecursiveLoop.TERMINATE,
-      loggingFormat: lambda.LoggingFormat.TEXT,
       timeout: props.timeout || Duration.seconds(30),
       logRetention: 14,
       environment: props.envVariables || undefined,
@@ -132,24 +202,37 @@ export class LambdaConstruct extends Construct {
       description: `Lambda function for ${props.lambdaName}`,
     });
 
+    /* Attach additional layers to the Lambda function if provided */
     if (props.layers) {
       props.layers.forEach((layer) => {
         this.lambdaFunction.addLayers(layer);
       });
     }
 
+    /* Grant the required IAM permissions to the Lambda function */
     if (props.permissions) {
       this.addPermissions(props.permissions);
     }
 
+    /* Configure VPC endpoints if specified */
     if (props.vpcEndpoints) {
       this.configureVpcEndpoints(props.vpcEndpoints);
     }
 
-    /* Add permission for API Gateway to invoke the Lambda function */
-    this.lambdaFunction.addPermission("ApiGatewayInvoke", {
-      principal: new iam.ServicePrincipal("apigateway.amazonaws.com"),
-    });
+    /* Handle API Gateway integration if specified */
+    if (props.apiGwIntegration) {
+      this.lambdaFunction.addPermission("ApiGatewayInvoke", {
+        principal: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+      });
+
+      /* Automatically register the API Gateway route */
+      props.apiGwIntegration.apiGateway.addMethod(
+        props.apiGwIntegration.route,
+        props.apiGwIntegration.method,
+        this.lambdaFunction,
+        props.apiGwIntegration.isProtected ?? false
+      );
+    }
   }
 
   /**

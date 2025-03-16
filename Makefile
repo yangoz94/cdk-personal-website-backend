@@ -18,7 +18,7 @@ _destroy-core-resources:
 	npx cdk destroy $(APP_NAME)-core-resources-stack --exclusively --output cdk.core.out --verbose --qualifier $(CDK_QUALIFIER) --toolkit-stack-name $(CDK_QUALIFIER)-cdk-bootstrap-stack --profile $(AWS_PROFILE)
 
 _deploy-primary-resources:
-	npx cdk deploy $(APP_NAME)-primary-resources-stack  --exlusively --output cdk.primary.out --verbose --qualifier $(CDK_QUALIFIER) --require-approval never --toolkit-stack-name $(CDK_QUALIFIER)-cdk-bootstrap-stack --profile $(AWS_PROFILE)
+	npx cdk deploy $(APP_NAME)-primary-resources-stack  --output cdk.primary.out --verbose --qualifier $(CDK_QUALIFIER) --require-approval never --toolkit-stack-name $(CDK_QUALIFIER)-cdk-bootstrap-stack --profile $(AWS_PROFILE)
 
 _destroy-primary-resources:
 	npx cdk destroy $(APP_NAME)-primary-resources-stack --exclusively --output cdk.primary.out --verbose --qualifier $(CDK_QUALIFIER) --toolkit-stack-name $(CDK_QUALIFIER)-cdk-bootstrap-stack --profile $(AWS_PROFILE)

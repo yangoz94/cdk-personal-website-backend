@@ -1,11 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import {
-  APIGatewayWithCognitoUserPoolConstruct,
-  CognitoConfig,
-} from "@constructs/APIGatewayWithCognitoUserPoolConstruct";
-import { LambdaConstruct } from "@constructs/LambdaConstruct";
+import { APIGatewayWithCognitoUserPoolConstruct, CognitoConfig } from "@constructs/APIGatewayWithCognitoUserPoolConstruct";
+import { APIMethodsEnum, DynamoDBPermissions, LambdaConstruct } from "@constructs/LambdaConstruct";
 import { S3CloudFrontConstruct } from "@constructs/S3CloudfrontConstruct";
 import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
 import * as path from "path";
@@ -26,26 +23,14 @@ export interface MainAPINestedStackProps extends cdk.NestedStackProps {
   dynamoDBTable: TableV2;
 }
 
-export interface APIRouteDefinition {
-  route: string;
-  method: APIMethodsEnum;
-  lambdaFunction: LambdaConstruct;
-  isProtected: boolean;
-}
-
-export enum APIMethodsEnum {
-  GET = "GET",
-  POST = "POST",
-  PUT = "PUT",
-  DELETE = "DELETE",
-}
-
 export class MainAPINestedStack extends cdk.NestedStack {
   public readonly apiGateway: APIGatewayWithCognitoUserPoolConstruct;
   public readonly s3BucketWithCDN: S3CloudFrontConstruct;
   public readonly commonLayer: LayerVersion;
+
   public readonly createProjectLambda: LambdaConstruct;
-  public readonly allRoutes: APIRouteDefinition[] = [];
+  public readonly getProjectByIdLambda: LambdaConstruct;
+  public readonly getProjectsLambda: LambdaConstruct;
 
   constructor(scope: Construct, id: string, props: MainAPINestedStackProps) {
     super(scope, id, props);
@@ -81,29 +66,74 @@ export class MainAPINestedStack extends cdk.NestedStack {
       vpcSubnets: props.vpc.selectSubnets({
         subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
       }),
-      permissions: ["dynamodb:Query", "dynamodb:GetItem", "dynamodb:PutItem"],
+      permissions: [DynamoDBPermissions.PUT_ITEM],
       layers: [this.commonLayer],
       nodeModules: [],
       externalModules: ["@aws-sdk/*", "aws-lambda"],
       vpcEndpoints: [props.dynamoDBVpcEndpoint],
-      entry: path.join(__dirname, "../../../src/lambdas/projects/create-project/create-project-handler.ts"),
+      entry: path.join(__dirname, "../../../src/lambdas/projects/create-project/create-project.handler.ts"),
       envVariables: {
         APP_NAME: props.appName,
         DDB_TABLE_NAME: props.dynamoDBTable.tableName,
       },
-    });
-
-    this.allRoutes = [
-      {
+      apiGwIntegration: {
+        apiGateway: this.apiGateway,
         route: `/${props.apiVersion}/projects/create`,
         method: APIMethodsEnum.POST,
-        lambdaFunction: this.createProjectLambda,
         isProtected: true,
       },
-    ];
+    });
 
-    this.allRoutes.forEach((route) => {
-      this.apiGateway.addMethod(route.route, route.method, route.lambdaFunction.lambdaFunction, route.isProtected);
+    /* Instantiate Get Project by ID Lambda */
+    this.getProjectByIdLambda = new LambdaConstruct(this, `${props.appName}-get-project-by-id-lambda`, {
+      appName: props.appName,
+      lambdaName: `${props.appName}-get-project-by-id`,
+      vpc: props.vpc,
+      vpcSubnets: props.vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+      }),
+      permissions: [DynamoDBPermissions.GET_ITEM],
+      layers: [this.commonLayer],
+      nodeModules: [],
+      externalModules: ["@aws-sdk/*", "aws-lambda"],
+      vpcEndpoints: [props.dynamoDBVpcEndpoint],
+      entry: path.join(__dirname, "../../../src/lambdas/projects/get-project-by-id/get-project-by-id.handler.ts"),
+      envVariables: {
+        APP_NAME: props.appName,
+        DDB_TABLE_NAME: props.dynamoDBTable.tableName,
+      },
+      apiGwIntegration: {
+        apiGateway: this.apiGateway,
+        route: `/${props.apiVersion}/projects/{projectId}`,
+        method: APIMethodsEnum.GET,
+        isProtected: false,
+      },
+    });
+
+    /* Instantiate Get Projects Lambda */
+    this.getProjectsLambda = new LambdaConstruct(this, `${props.appName}-get-projects-lambda`, {
+      appName: props.appName,
+      lambdaName: `${props.appName}-get-projects`,
+      vpc: props.vpc,
+      vpcSubnets: props.vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+      }),
+      permissions: [DynamoDBPermissions.QUERY],
+      layers: [this.commonLayer],
+      nodeModules: [],
+      externalModules: ["@aws-sdk/*", "aws-lambda"],
+      vpcEndpoints: [props.dynamoDBVpcEndpoint],
+      entry: path.join(__dirname, "../../../src/lambdas/projects/get-projects/get-projects.handler.ts"),
+      envVariables: {
+        APP_NAME: props.appName,
+        DDB_TABLE_NAME: props.dynamoDBTable.tableName,
+      },
+      apiGwIntegration: {
+        apiGateway: this.apiGateway,
+        route: `/${props.apiVersion}/projects`,
+        method: APIMethodsEnum.GET,
+        isProtected: false,
+      },
     });
   }
 }

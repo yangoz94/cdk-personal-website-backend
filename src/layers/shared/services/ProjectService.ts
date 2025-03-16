@@ -1,7 +1,7 @@
 import { ProjectType } from "@ddb/schema.js";
 import { BaseService } from "./BaseService.js";
 import { Model } from "dynamodb-onetable";
-import { NotFoundError } from "../errors/errors.js";
+import { BadRequestError, NotFoundError } from "../errors/errors.js";
 
 export class ProjectService extends BaseService {
   private projectModel: Model<ProjectType>;
@@ -33,19 +33,29 @@ export class ProjectService extends BaseService {
   public async getProjectById(projectId: string, model?: Model<ProjectType>): Promise<ProjectType | null> {
     const client = this.getClient(model);
     const project = await client.get({ project_id: projectId });
-    if (!project) {
-      throw new NotFoundError(`Project with ID ${projectId} not found`);
-    }
-    return project;
+    return project || null;
   }
 
   /**
-   * Get all projects.
-   * To-do: add query params
+   * Get projects with pagination.
    */
-  public async getProjects(query: Record<string, unknown>, model?: Model<ProjectType>): Promise<ProjectType[]> {
+  public async getProjects(limit: number, lastKey?: string, model?: Model<ProjectType>): Promise<{ projects: ProjectType[]; lastEvaluatedKey?: string }> {
     const client = this.getClient(model);
-    return await client.find(query);
+    let next: any;
+
+    if (lastKey) {
+      try {
+        next = JSON.parse(Buffer.from(lastKey, "base64").toString("utf8"));
+      } catch (error) {
+        throw new BadRequestError("Invalid last key");
+      }
+    }
+
+    const projects = await client.find({ APIPK: "PROJECT" }, { index: "AllProjectsIndex", limit, next });
+
+    const lastEvaluatedKey = projects.next ? Buffer.from(JSON.stringify(projects.next)).toString("base64") : undefined;
+
+    return { projects: projects, lastEvaluatedKey };
   }
 
   /**

@@ -10,15 +10,19 @@ import { ProjectService } from "src/layers/shared/services/ProjectService.js";
 
 const projectService = new ProjectService();
 
-const createProjectSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  tags: z.array(z.string()).optional(),
-  tech_stack: z.array(z.string()).optional(),
-  deployed_link: z.string().optional(),
-  repository_link: z.string(),
-  images_s3_keys: z.array(z.string()),
+const nameRegex = /^[a-z0-9 ,.'-]+$/i;
+
+export const createProjectSchema = z.object({
+  name: z.string({ required_error: "Name is required" }).regex(nameRegex, "Name format is invalid"),
+  description: z.string({ required_error: "Description is required" }),
+  tags: z.array(z.string({ required_error: "Each tag must be a string" })).optional(),
+  tech_stack: z.array(z.string({ required_error: "Each tech stack item must be a string" })).optional(),
+  live_url: z.string().optional(),
+  github_url: z.string({ required_error: "Repository link is required" }),
+  images_s3_keys: z.array(z.string(), { required_error: "Images S3 keys are required" }).min(1, "At least one image key is required"),
 });
+
+export type createProjectType = z.infer<typeof createProjectSchema>;
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -28,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     if (!validationResult.success) {
       logger.error("Invalid request body", validationResult.error.format());
-      return ErrorResponse.create("Invalid request body", validationResult.error.format());
+      return ErrorResponse.create("Invalid request body", validationResult.error.format(), StatusCodes.BAD_REQUEST);
     }
 
     /* Create new project by calling the Service layer */
