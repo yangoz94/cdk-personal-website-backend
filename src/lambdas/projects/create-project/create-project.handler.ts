@@ -27,7 +27,7 @@ export type createProjectType = z.infer<typeof createProjectSchema>;
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
     /* Generic lambda request validation */
-    const parsedBody = LambdaUtils.validateRequest(event);
+    const parsedBody = LambdaUtils.validateRequestsWithBody(event);
     const validationResult = createProjectSchema.safeParse(parsedBody);
 
     if (!validationResult.success) {
@@ -39,8 +39,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const newProject = await projectService.createProject(validationResult.data);
 
     return SuccessfulAPIResponse.create(newProject, "Project created successfully", StatusCodes.CREATED);
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error creating project", error);
-    return ErrorResponse.create("Error creating project", error, StatusCodes.INTERNAL_SERVER_ERROR);
+    return ErrorResponse.create(error.message, error, error.statusCode);
   }
 };

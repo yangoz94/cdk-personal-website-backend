@@ -39,8 +39,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     logger.info("Projects retrieved successfully", { projects, lastKey: lastEvaluatedKey });
     return SuccessfulAPIResponse.create({ projects, lastKey: lastEvaluatedKey }, "Projects retrieved successfully", StatusCodes.OK);
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error retrieving projects", error);
-    return ErrorResponse.create("Error retrieving projects", error, StatusCodes.INTERNAL_SERVER_ERROR);
+    return ErrorResponse.create(error.message, error, error.statusCode);
   }
 };

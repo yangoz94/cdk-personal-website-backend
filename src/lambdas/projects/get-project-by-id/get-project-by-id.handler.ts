@@ -16,8 +16,6 @@ const getProjectByIdSchema = z.object({
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    /* Generic lambda request validation */
-    const parsedBody = LambdaUtils.validateRequest(event);
     const pathParams = event.pathParameters || {};
     const validationResult = getProjectByIdSchema.safeParse(pathParams);
 
@@ -35,8 +33,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     return SuccessfulAPIResponse.create(project, `Project with ID ${projectId} retrieved successfully`, StatusCodes.OK);
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error creating project", error);
-    return ErrorResponse.create("Error creating project", error, StatusCodes.INTERNAL_SERVER_ERROR);
+    return ErrorResponse.create(error.message, error, error.statusCode);
   }
 };

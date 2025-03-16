@@ -2,27 +2,27 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { ErrorResponse } from "@utils/ErrorResponse.js";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "./Logger.js";
+import { BadRequestError, BaseError, InvalidJSONError, MissingRequestBodyError } from "../errors/errors.js";
 
 export class LambdaUtils {
   /**
    * Validates and parses the API Gateway event body.
-   * Returns the parsed body or an API Gateway error response.
+   * Returns the parsed body.
+   * Throws an error if the body is missing or invalid.
    */
-  static validateRequest(event: APIGatewayProxyEvent): Record<string, unknown> | APIGatewayProxyResult {
+  static validateRequestsWithBody(event: APIGatewayProxyEvent): Record<string, unknown> {
     if (!event.body) {
-      logger.error("Request body is missing");
-      return ErrorResponse.create("Request body is missing", null, StatusCodes.BAD_REQUEST);
+      throw new MissingRequestBodyError();
     }
 
     try {
       const parsedBody = JSON.parse(event.body);
       if (typeof parsedBody !== "object" || parsedBody === null) {
-        return ErrorResponse.create("Parsed body is NOT a valid JSON object", null, StatusCodes.BAD_REQUEST);
+        throw new InvalidJSONError();
       }
       return parsedBody;
     } catch (error) {
-      logger.error("Invalid JSON format in request body", error);
-      return ErrorResponse.create("Invalid JSON format in request body", null, StatusCodes.BAD_REQUEST);
+      throw new InvalidJSONError();
     }
   }
 }
