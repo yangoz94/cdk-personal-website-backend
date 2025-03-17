@@ -7,6 +7,7 @@ import { ErrorResponse } from "@utils/ErrorResponse.js";
 import { logger } from "@utils/Logger.js";
 import { StatusCodes } from "http-status-codes";
 import { ProjectService } from "src/layers/shared/services/ProjectService.js";
+import { BaseError } from "src/layers/shared/errors/errors.js";
 
 const projectService = new ProjectService();
 
@@ -41,6 +42,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return SuccessfulAPIResponse.create(newProject, "Project created successfully", StatusCodes.CREATED);
   } catch (error: any) {
     logger.error("Error creating project", error);
-    return ErrorResponse.create(error.message, error, error.statusCode);
+    if (error instanceof BaseError) {
+      return ErrorResponse.create(error.message, error, error.statusCode);
+    }
+    return ErrorResponse.create("Internal server error", error, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };

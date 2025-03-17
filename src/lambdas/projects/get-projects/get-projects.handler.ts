@@ -5,6 +5,7 @@ import { logger } from "@utils/Logger.js";
 import { StatusCodes } from "http-status-codes";
 import { ProjectService } from "src/layers/shared/services/ProjectService.js";
 import { SuccessfulAPIResponse } from "@utils/SuccesfulApiResponse.js";
+import { BaseError } from "src/layers/shared/errors/errors.js";
 
 const projectService = new ProjectService();
 
@@ -40,7 +41,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     logger.info("Projects retrieved successfully", { projects, lastKey: lastEvaluatedKey });
     return SuccessfulAPIResponse.create({ projects, lastKey: lastEvaluatedKey }, "Projects retrieved successfully", StatusCodes.OK);
   } catch (error: any) {
-    logger.error("Error retrieving projects", error);
-    return ErrorResponse.create(error.message, error, error.statusCode);
+    logger.error("Error retrieving projects:", error);
+    if (error instanceof BaseError) {
+      return ErrorResponse.create(error.message, error, error.statusCode);
+    }
+    return ErrorResponse.create("Internal server error", error, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
