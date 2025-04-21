@@ -26,7 +26,12 @@ export class SuccessfulAPIResponse {
     }
 
     if (typeof data === "object" && data !== null) {
-      return Object.fromEntries(Object.entries(data).map(([key, value]) => [key, this.formatData(value)]));
+      return Object.fromEntries(
+        Object.entries(data).map(([key, value]) => [
+          key,
+          this.formatData(value),
+        ])
+      );
     }
 
     return data;
@@ -40,6 +45,12 @@ export class SuccessfulAPIResponse {
       statusCode,
       headers: {
         "Content-Type": "application/json",
+        /* Include CORS headers to ensure cross-origin requests work */
+        "Access-Control-Allow-Origin": "*", // Use a specific origin in production
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Headers":
+          "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
       },
       body: JSON.stringify({
         success: true,
@@ -53,6 +64,10 @@ export class SuccessfulAPIResponse {
    * Static helper for quick usage.
    */
   public static create(data: any, message: string, statusCode: number = 200) {
-    return SuccessfulAPIResponse.getInstance().create(data, message, statusCode);
+    return SuccessfulAPIResponse.getInstance().create(
+      data,
+      message,
+      statusCode
+    );
   }
 }

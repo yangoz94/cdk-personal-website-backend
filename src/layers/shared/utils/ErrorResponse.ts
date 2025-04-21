@@ -44,7 +44,12 @@ export class ErrorResponse {
     if (data instanceof Date) return data.toISOString();
     if (Array.isArray(data)) return data.map((item) => this.formatData(item));
     if (typeof data === "object" && data !== null) {
-      return Object.fromEntries(Object.entries(data).map(([key, value]) => [key, this.formatData(value)]));
+      return Object.fromEntries(
+        Object.entries(data).map(([key, value]) => [
+          key,
+          this.formatData(value),
+        ])
+      );
     }
     return data;
   }
@@ -53,7 +58,11 @@ export class ErrorResponse {
    * Creates a standardized Lambda/API Gateway error response.
    * If the error is a ZodError, it will use formatZodErrorsSimple to produce a concise error map.
    */
-  public create(message: string, error?: any, statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR) {
+  public create(
+    message: string,
+    error?: any,
+    statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR
+  ) {
     let details: any;
     if (error instanceof ZodError) {
       details = formatZodErrorsSimple(error);
@@ -67,6 +76,12 @@ export class ErrorResponse {
       statusCode,
       headers: {
         "Content-Type": "application/json",
+        /* Include CORS headers to ensure cross-origin requests work */
+        "Access-Control-Allow-Origin": "*", // Use a specific origin in production
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Headers":
+          "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
       },
       body: JSON.stringify({
         success: false,
@@ -79,7 +94,11 @@ export class ErrorResponse {
   /**
    * Shortcut static method for direct usage without instance handling.
    */
-  public static create(message: string, error: any, statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR) {
+  public static create(
+    message: string,
+    error: any,
+    statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR
+  ) {
     return ErrorResponse.getInstance().create(message, error, statusCode);
   }
 }

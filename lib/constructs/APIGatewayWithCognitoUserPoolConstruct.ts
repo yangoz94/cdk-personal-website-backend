@@ -55,6 +55,7 @@ export interface APIGatewayWithCognitoUserPoolConstructProps
 export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
   public readonly restApi: apigw.RestApi;
   public readonly authorizer: apigw.CognitoUserPoolsAuthorizer;
+  private readonly domain: string;
 
   /**
    * Constructs a new instance of the APIGatewayConstruct.
@@ -65,6 +66,9 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
     props: APIGatewayWithCognitoUserPoolConstructProps
   ) {
     super(scope, id);
+
+    /* Store domain for later use in other methods */
+    this.domain = props.domain;
 
     /* Cognito User Pool setup */
     const userPool = new cognito.UserPool(this, `${props.appName}-userpool`, {
@@ -293,14 +297,53 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       resource = resource.getResource(part) ?? resource.addResource(part);
     });
 
+    /* Enable CORS for this resource if not already enabled */
+    if (!resource.defaultCorsPreflightOptions) {
+      resource.addCorsPreflight({
+        allowOrigins: [
+          `https://${this.domain}`,
+          `https://*.${this.domain}`,
+          "http://localhost:3000",
+        ],
+        allowMethods: apigw.Cors.ALL_METHODS,
+        allowHeaders: [
+          "Content-Type",
+          "X-Amz-Date",
+          "Authorization",
+          "X-Api-Key",
+          "X-Amz-Security-Token",
+        ],
+      });
+    }
+
     resource.addMethod(
       httpMethod,
-      new apigw.LambdaIntegration(lambdaFunction),
+      new apigw.LambdaIntegration(lambdaFunction, {
+        proxy: true,
+        /* Ensure Lambda returns proper CORS headers */
+        integrationResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {
+              "method.response.header.Access-Control-Allow-Origin": "'*'",
+            },
+          },
+        ],
+      }),
       {
         authorizer: isProtected ? this.authorizer : undefined,
         authorizationType: isProtected
           ? apigw.AuthorizationType.COGNITO
           : apigw.AuthorizationType.NONE,
+        /* Configure method response to include CORS headers */
+        methodResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {
+              "method.response.header.Access-Control-Allow-Origin": true,
+            },
+          },
+        ],
       }
     );
   }
