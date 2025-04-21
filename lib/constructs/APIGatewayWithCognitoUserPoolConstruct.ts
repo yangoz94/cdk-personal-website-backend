@@ -148,7 +148,11 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       restApiName: `${props.appName}-api-gw`,
       endpointConfiguration: { types: [apigw.EndpointType.EDGE] },
       defaultCorsPreflightOptions: {
-        allowOrigins: [`https://${props.domain}`, `https://*.${props.domain}`],
+        allowOrigins: [
+          `https://${props.domain}`,
+          `https://*.${props.domain}`,
+          `http://localhost:3000` /* TO-DO: Remove this in production once it's not needed anymore */,
+        ],
         allowMethods: apigw.Cors.ALL_METHODS,
         allowHeaders: [
           "Content-Type",
