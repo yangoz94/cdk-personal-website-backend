@@ -165,6 +165,9 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
         accessLogDestination: new apigw.LogGroupLogDestination(accessLogGroup),
         accessLogFormat: apigw.AccessLogFormat.jsonWithStandardFields(),
         description: `API Gateway for ${props.appName}`,
+        /* Rate limiting configuration to prevent abuse */
+        throttlingRateLimit: 5 /* 5 requests per second */,
+        throttlingBurstLimit: 10 /* 10 concurrent requests */,
       },
       cloudWatchRole: true,
       cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY,
