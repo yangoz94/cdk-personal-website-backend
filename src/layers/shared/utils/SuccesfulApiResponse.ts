@@ -46,7 +46,7 @@ export class SuccessfulAPIResponse {
       headers: {
         "Content-Type": "application/json",
         /* Include CORS headers to ensure cross-origin requests work */
-        "Access-Control-Allow-Origin": "*", // Use a specific origin in production
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Headers":
           "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",

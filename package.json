@@ -33,6 +33,7 @@
     "constructs": "^10.4.2",
     "http-status-codes": "^2.3.0",
     "source-map-support": "^0.5.21",
+    "uuidv7": "^1.0.2",
     "zod": "^3.24.2"
   },
   "description": "WARNING: These instructions were tested on MacOS devices with ARM architecture. If your system is using x86, you might need to make some changes to the architecture and platform fields in the lambda construct to avoid errors while bundling during deployment.",

@@ -1,9 +1,9 @@
 import { Entity, Model } from "dynamodb-onetable";
-import { DDBInstance } from "./ddb-instance.js";
 import { uuidv7 } from "uuidv7";
 
 const Match = {
-  email: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  email:
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
   name: /^[a-z0-9 ,.'-]+$/i,
   username: /^[a-z0-9_]{3,30}$/i,
 };
@@ -63,7 +63,6 @@ export const Schema = {
       tech_stack: { type: Array, default: [] },
       live_url: { type: String, required: false },
       github_url: { type: String, required: true },
-      images_s3_keys: { type: Array, required: true },
     },
   },
   params: {

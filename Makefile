@@ -80,9 +80,10 @@ register_user:
 get_user:
 	@read -p "Enter username: " username; \
 	read -sp "Enter password: " password; echo ""; \
+	client_id=$$(aws ssm get-parameter --name /$(APP_NAME)/userpool-client-id --query Parameter.Value --output text --profile $(AWS_PROFILE)); \
 	aws cognito-idp initiate-auth \
 		--auth-flow USER_PASSWORD_AUTH \
-		--client-id $(shell aws ssm get-parameter --name /$(APP_NAME)/userpool-client-id --query Parameter.Value --output text) \
+		--client-id $$client_id \
 		--auth-parameters USERNAME=$$username,PASSWORD=$$password \
 		--profile $(AWS_PROFILE)
 
@@ -94,3 +95,4 @@ delete_user:
 		--username $$username \
 		--profile $(AWS_PROFILE); \
 	echo "User $$username has been deleted."
+
