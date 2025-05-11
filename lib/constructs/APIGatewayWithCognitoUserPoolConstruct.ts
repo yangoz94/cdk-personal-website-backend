@@ -154,6 +154,7 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       defaultCorsPreflightOptions: {
         allowOrigins: [
           `https://${props.domain}`,
+          `https://www.${props.domain}`,
           `https://*.${props.domain}`,
           `http://localhost:3000` /* TO-DO: Remove this in production once it's not needed anymore */,
         ],
@@ -302,8 +303,8 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       resource.addCorsPreflight({
         allowOrigins: [
           `https://${this.domain}`,
+          `https://www.${this.domain}`,
           `https://*.${this.domain}`,
-          "http://localhost:3000",
         ],
         allowMethods: apigw.Cors.ALL_METHODS,
         allowHeaders: [
