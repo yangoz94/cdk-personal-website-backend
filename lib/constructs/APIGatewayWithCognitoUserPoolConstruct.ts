@@ -103,10 +103,28 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
       {
         userPool,
         authFlows: { userPassword: true, userSrp: true },
-        oAuth: {
-          callbackUrls: props.cognitoConfig?.callbackUrls || [],
-          logoutUrls: props.cognitoConfig?.logoutUrls || [],
-        },
+        ...(props.cognitoConfig?.callbackUrls &&
+        props.cognitoConfig.callbackUrls.length > 0 &&
+        props.cognitoConfig.logoutUrls &&
+        props.cognitoConfig.logoutUrls.length > 0
+          ? {
+              oAuth: {
+                callbackUrls: props.cognitoConfig.callbackUrls,
+                logoutUrls: props.cognitoConfig.logoutUrls,
+                flows: {
+                  authorizationCodeGrant:
+                    props.cognitoConfig.flows?.authCodeGrant !== false,
+                  implicitCodeGrant:
+                    props.cognitoConfig.flows?.implicitCodeGrant || false,
+                },
+                scopes: [
+                  cognito.OAuthScope.OPENID,
+                  cognito.OAuthScope.EMAIL,
+                  cognito.OAuthScope.PROFILE,
+                ],
+              },
+            }
+          : {}),
         idTokenValidity: Duration.minutes(15),
         accessTokenValidity: Duration.minutes(15),
         refreshTokenValidity: Duration.days(1),
@@ -305,6 +323,7 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
           `https://${this.domain}`,
           `https://www.${this.domain}`,
           `https://*.${this.domain}`,
+          "http://localhost:3000",
         ],
         allowMethods: apigw.Cors.ALL_METHODS,
         allowHeaders: [
