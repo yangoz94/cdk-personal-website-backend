@@ -323,7 +323,6 @@ export class APIGatewayWithCognitoUserPoolConstruct extends Construct {
           `https://${this.domain}`,
           `https://www.${this.domain}`,
           `https://*.${this.domain}`,
-          "http://localhost:3000",
         ],
         allowMethods: apigw.Cors.ALL_METHODS,
         allowHeaders: [
